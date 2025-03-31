@@ -311,8 +311,92 @@ def home():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """Render the dashboard page"""
-    return render_template('index.html')
+    """Render the dashboard page with analytics data"""
+    # In a real application, this data would come from a database
+    analytics = {
+        'user_stats': {
+            'emails_generated': 145,
+            'bulk_campaigns': 12,
+            'avg_score': 8.7,
+            'usage_percentage': 65
+        },
+        'campaigns': [
+            {
+                'name': 'Q2 Outreach',
+                'type': 'Cold Email',
+                'emails_sent': 27,
+                'date': 'Mar 30, 2025',
+                'open_rate': 68,
+                'click_rate': 32,
+                'reply_rate': 18,
+                'status': 'Active'
+            },
+            {
+                'name': 'March Prospects',
+                'type': 'Cold Email',
+                'emails_sent': 42,
+                'date': 'Mar 15, 2025',
+                'open_rate': 76,
+                'click_rate': 29,
+                'reply_rate': 32,
+                'status': 'Completed'
+            },
+            {
+                'name': 'Industry Conference',
+                'type': 'Meeting Request',
+                'emails_sent': 15,
+                'date': 'Mar 10, 2025',
+                'open_rate': 87,
+                'click_rate': 53,
+                'reply_rate': 47,
+                'status': 'Completed'
+            },
+            {
+                'name': 'Q1 Follow-ups',
+                'type': 'Follow-Up',
+                'emails_sent': 31,
+                'date': 'Feb 28, 2025',
+                'open_rate': 72,
+                'click_rate': 41,
+                'reply_rate': 35,
+                'status': 'Completed'
+            }
+        ],
+        'recent_activity': [
+            {
+                'type': 'campaign',
+                'title': 'Bulk Campaign Generated',
+                'description': 'Generated 27 personalized emails for "Q2 Outreach" campaign',
+                'time': '2 hours ago'
+            },
+            {
+                'type': 'template',
+                'title': 'Template Created',
+                'description': 'Created new template "Custom Follow-up" for tech industry',
+                'time': 'Yesterday'
+            },
+            {
+                'type': 'campaign',
+                'title': 'Campaign Completed',
+                'description': '"March Prospects" campaign completed with 32% response rate',
+                'time': '3 days ago'
+            },
+            {
+                'type': 'settings',
+                'title': 'Settings Updated',
+                'description': 'Updated notification preferences and sender information',
+                'time': '1 week ago'
+            },
+            {
+                'type': 'campaign',
+                'title': 'Bulk Campaign Generated',
+                'description': 'Generated 15 personalized emails for "Industry Conference" campaign',
+                'time': '1 week ago'
+            }
+        ]
+    }
+    
+    return render_template('dashboard.html', analytics=analytics)
 
 @app.route('/profile')
 @login_required
@@ -372,6 +456,7 @@ def manage_templates():
     }
     
     # In a real application, you would load user-customized templates from a database
+    
     return render_template('template_management.html', templates=default_templates)
 
 @app.route('/save-template', methods=['POST'])
