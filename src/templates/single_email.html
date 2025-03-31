@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Single Email - Inbox Genie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .form-section {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .result-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .email-preview {
+        white-space: pre-wrap;
+        font-family: 'Arial', sans-serif;
+        border-left: 4px solid #6f42c1;
+        padding: 15px;
+        background-color: #f8f9fa;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row">
+        <div class="col-lg-12 text-center mb-5">
+            <h1>Single Email Generator</h1>
+            <p class="lead">Create a personalized cold email based on your recipient's profile</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="form-section mb-4">
+                <h3 class="mb-4">Recipient Information</h3>
+                <form id="singleEmailForm">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="name" class="form-label">Recipient Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" required>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="role" class="form-label">Job Title <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="role" name="role" required>
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="company" class="form-label">Company <span class="text-danger">*</span></label>
+                        <input type="text" class="form-control" id="company" name="company" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="industry" class="form-label">Industry</label>
+                        <input type="text" class="form-control" id="industry" name="industry">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="recent_activity" class="form-label">Recent Activity</label>
+                        <textarea class="form-control" id="recent_activity" name="recent_activity" rows="2" placeholder="e.g., article they published, recent promotion, award"></textarea>
+                        <div class="form-text">Recent achievements or activities that you can reference</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="industry_news" class="form-label">Industry News</label>
+                        <textarea class="form-control" id="industry_news" name="industry_news" rows="2" placeholder="e.g., recent industry trends, news affecting their company"></textarea>
+                        <div class="form-text">Current events in their industry that might be relevant</div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="pain_points" class="form-label">Pain Points</label>
+                        <textarea class="form-control" id="pain_points" name="pain_points" rows="2" placeholder="e.g., scaling challenges, competition, market changes"></textarea>
+                        <div class="form-text">Specific challenges they or their company might be facing</div>
+                    </div>
+                    
+                    <div class="alert alert-info mb-4">
+                        <h5 class="mb-3"><i class="bi bi-lightbulb-fill me-2"></i>Tips for Better Emails</h5>
+                        <ul class="mb-0">
+                            <li>Be specific about recent activities or news - vague references don't impress</li>
+                            <li>Research their LinkedIn profile for recent posts or achievements</li>
+                            <li>Include industry-specific pain points that your product/service addresses</li>
+                            <li>Keep information accurate and up-to-date</li>
+                        </ul>
+                    </div>
+                    
+                    <div class="d-grid">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-magic me-2"></i>Generate Personalized Email
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="result-section mb-4">
+                <h3 class="mb-4">Your Personalized Email</h3>
+                
+                <!-- Processing indicator -->
+                <div id="processingIndicator" class="text-center py-5 d-none">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Processing...</span>
+                    </div>
+                    <p class="mt-3">Generating your personalized email...</p>
+                </div>
+                
+                <!-- Email result container -->
+                <div id="emailResultContainer" style="display:none;" class="position-relative">
+                    <button id="copyEmailBtn" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-2">
+                        <i class="bi bi-clipboard me-1"></i>Copy
+                    </button>
+                    <div id="emailPreview" class="email-preview p-4 mt-3"></div>
+                    
+                    <div class="d-flex justify-content-between mt-4">
+                        <button id="regenerateBtn" class="btn btn-outline-primary">
+                            <i class="bi bi-arrow-clockwise me-2"></i>Regenerate
+                        </button>
+                        <button id="downloadBtn" class="btn btn-outline-success">
+                            <i class="bi bi-download me-2"></i>Download as Text
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Instructions -->
+                <div id="instructionsContainer" class="text-center py-5">
+                    <i class="bi bi-envelope-paper display-1 text-muted"></i>
+                    <p class="mt-3 lead">Fill out the recipient information and click "Generate Personalized Email"</p>
+                    <p class="text-muted">Our AI will craft a unique, personalized cold email designed to maximize response rates</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const singleEmailForm = document.getElementById('singleEmailForm');
+    const processingIndicator = document.getElementById('processingIndicator');
+    const emailResultContainer = document.getElementById('emailResultContainer');
+    const instructionsContainer = document.getElementById('instructionsContainer');
+    const emailPreview = document.getElementById('emailPreview');
+    const copyEmailBtn = document.getElementById('copyEmailBtn');
+    const regenerateBtn = document.getElementById('regenerateBtn');
+    const downloadBtn = document.getElementById('downloadBtn');
+    
+    // Function to collect form data
+    function getFormData() {
+        return {
+            name: document.getElementById('name').value,
+            role: document.getElementById('role').value,
+            company: document.getElementById('company').value,
+            industry: document.getElementById('industry').value || '',
+            recent_activity: document.getElementById('recent_activity').value || '',
+            industry_news: document.getElementById('industry_news').value || '',
+            pain_points: document.getElementById('pain_points').value || ''
+        };
+    }
+    
+    // Function to generate email
+    function generateEmail(formData) {
+        // Show processing indicator
+        processingIndicator.classList.remove('d-none');
+        emailResultContainer.style.display = 'none';
+        instructionsContainer.style.display = 'none';
+        
+        // Call the API
+        fetch('/generate-email', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(formData)
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing indicator
+            processingIndicator.classList.add('d-none');
+            
+            // Display the generated email
+            emailPreview.innerHTML = data.email.replace(/\n/g, '<br>');
+            emailResultContainer.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            processingIndicator.classList.add('d-none');
+            instructionsContainer.style.display = 'block';
+            alert('Error generating email. Please try again.');
+        });
+    }
+    
+    // Handle form submission
+    singleEmailForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const formData = getFormData();
+        generateEmail(formData);
+    });
+    
+    // Handle regenerate button
+    regenerateBtn.addEventListener('click', function() {
+        const formData = getFormData();
+        generateEmail(formData);
+    });
+    
+    // Handle copy button
+    copyEmailBtn.addEventListener('click', function() {
+        const emailText = emailPreview.innerText;
+        
+        navigator.clipboard.writeText(emailText)
+            .then(() => {
+                // Change button text temporarily
+                const originalHTML = this.innerHTML;
+                this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
+                setTimeout(() => {
+                    this.innerHTML = originalHTML;
+                }, 2000);
+            })
+            .catch(err => {
+                console.error('Failed to copy text: ', err);
+                alert('Failed to copy to clipboard');
+            });
+    });
+    
+    // Handle download button
+    downloadBtn.addEventListener('click', function() {
+        const emailText = emailPreview.innerText;
+        const recipientName = document.getElementById('name').value;
+        const company = document.getElementById('company').value;
+        
+        const blob = new Blob([emailText], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `email-for-${recipientName.toLowerCase().replace(/\s+/g, '-')}-at-${company.toLowerCase().replace(/\s+/g, '-')}.txt`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    });
+});
+</script>
+{% endblock %}

@@ -228,6 +228,12 @@ def bulk_emails():
     """Render the bulk email page"""
     return render_template('bulk.html')
 
+@app.route('/single-email')
+@login_required
+def single_email():
+    """Render the single email generation page"""
+    return render_template('single_email.html')
+
 # Add alias for backward compatibility
 @app.route('/bulk')
 @login_required
