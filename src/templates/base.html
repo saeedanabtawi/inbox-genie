@@ -46,7 +46,7 @@
                         <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/bulk' %}active{% endif %}" href="{{ url_for('bulk_emails') }}">Bulk Emails</a>
+                        <a class="nav-link {% if request.path == '/bulk-emails' %}active{% endif %}" href="{{ url_for('bulk_emails') }}">Bulk Emails</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -100,7 +100,7 @@
                         {% if current_user.is_authenticated %}
                         <li><a href="/dashboard" class="text-white">Dashboard</a></li>
                         <li><a href="/profile" class="text-white">Profile</a></li>
-                        <li><a href="/bulk" class="text-white">Bulk Emails</a></li>
+                        <li><a href="/bulk-emails" class="text-white">Bulk Emails</a></li>
                         {% else %}
                         <li><a href="{{ url_for('auth.login') }}" class="text-white">Login</a></li>
                         <li><a href="{{ url_for('auth.register') }}" class="text-white">Register</a></li>

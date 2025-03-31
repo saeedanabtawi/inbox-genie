@@ -1,7 +1,7 @@
 import os
 import csv
 import io
-from flask import Flask, render_template, request, jsonify, redirect, url_for
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user, LoginManager
 import secrets
 
@@ -189,13 +189,56 @@ def home():
 @app.route('/dashboard')
 @login_required
 def dashboard():
-    """Render the dashboard page - requires login"""
+    """Render the dashboard page"""
     return render_template('index.html')
+
+@app.route('/profile')
+@login_required
+def profile():
+    """Render the user profile page"""
+    # In a real application, you might fetch user statistics from a database
+    stats = {
+        'emails_generated': 0,
+        'bulk_campaigns': 0,
+        'avg_score': 'N/A'
+    }
+    return render_template('profile.html', stats=stats)
+
+@app.route('/update_profile', methods=['POST'])
+@login_required
+def update_profile():
+    """Handle profile update form submission"""
+    if request.method == 'POST':
+        # In a real app, you would validate and update the user profile
+        flash('Profile updated successfully!', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/change_password', methods=['POST'])
+@login_required
+def change_password():
+    """Handle password change form submission"""
+    if request.method == 'POST':
+        # In a real app, you would validate passwords and update them
+        flash('Password changed successfully!', 'success')
+    return redirect(url_for('profile'))
+
+@app.route('/bulk-emails')
+@login_required
+def bulk_emails():
+    """Render the bulk email page"""
+    return render_template('bulk.html')
+
+# Add alias for backward compatibility
+@app.route('/bulk')
+@login_required
+def bulk_emails_alias():
+    """Alias for bulk_emails to maintain backward compatibility"""
+    return redirect(url_for('bulk_emails'))
 
 @app.route('/generate-email', methods=['POST'])
 @login_required
 def email_generator():
-    """API endpoint to generate a personalized email - requires login"""
+    """API endpoint to generate a personalized email"""
     data = request.json
     
     # Generate the email
@@ -208,28 +251,16 @@ def about():
     """Render the about page - public access"""
     return render_template('about.html')
 
-@app.route('/bulk')
-@login_required
-def bulk_emails():
-    """Render the bulk email page - requires login"""
-    return render_template('bulk.html')
-
-@app.route('/process-bulk-emails', methods=['POST'])
+@app.route('/api/process-bulk-emails', methods=['POST'])
 @login_required
 def process_bulk_emails():
-    """API endpoint to process bulk emails - requires login"""
+    """API endpoint to process bulk emails"""
     data = request.json
     csv_data = data.get('csv_data', '')
     
     # Process CSV and generate emails
     result = EmailGenerator.process_csv_data(csv_data)
     return jsonify(result)
-
-@app.route('/profile')
-@login_required
-def profile():
-    """Render the user profile page - requires login"""
-    return render_template('profile.html')
 
 @app.route('/auth/login')
 def login_page():
