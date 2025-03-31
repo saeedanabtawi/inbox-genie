@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}About Inbox Genie{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto text-center">
+            <h1 class="display-4 mb-4">About Inbox Genie</h1>
+            <p class="lead">AI-Powered Cold Email Personalization Assistant</p>
+            <hr class="my-4">
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4">Our Mission</h2>
+            <p>At Inbox Genie, we're on a mission to transform the way professionals approach cold email outreach. We believe that personalization is the key to establishing meaningful connections and driving engagement in an increasingly crowded digital landscape.</p>
+            <p>Our AI-powered platform analyzes recipient data to craft tailored, contextually relevant emails that resonate with your prospects and significantly increase response rates.</p>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4">Key Features</h2>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-person-check text-primary me-2"></i>Deep Recipient Analysis</h5>
+                    <p class="card-text">We analyze recipient data including name, role, company, LinkedIn profile, recent activity, and industry news to craft truly personalized cold emails.</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-bullseye text-primary me-2"></i>Relevance-Driven Content</h5>
+                    <p class="card-text">Our AI connects your product or service directly to the specific challenges and pain points of your recipient, demonstrating clear value.</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-rocket text-primary me-2"></i>Concise, Value-Focused Messaging</h5>
+                    <p class="card-text">We keep content concise and focused on the recipient's needs, avoiding lengthy pitches that go unread.</p>
+                </div>
+            </div>
+            <div class="card mb-3">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-hand-index-thumb text-primary me-2"></i>Compelling Calls-to-Action</h5>
+                    <p class="card-text">Every email ends with a clear, low-friction next step to drive engagement and conversation.</p>
+                </div>
+            </div>
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title"><i class="bi bi-people text-primary me-2"></i>Bulk Processing</h5>
+                    <p class="card-text">Upload recipient data in bulk via CSV and generate personalized emails for your entire outreach list in seconds.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-5">
+        <div class="col-lg-8 mx-auto">
+            <h2 class="mb-4">How It Works</h2>
+            <div class="card">
+                <div class="card-body">
+                    <ol class="list-group list-group-numbered mb-0">
+                        <li class="list-group-item border-0">Enter recipient information (name, role, company, etc.)</li>
+                        <li class="list-group-item border-0">Add any known pain points or recent company activities</li>
+                        <li class="list-group-item border-0">Specify your product/service offering and unique value proposition</li>
+                        <li class="list-group-item border-0">Select your preferred tone and style</li>
+                        <li class="list-group-item border-0">Generate a professionally crafted, personalized email in seconds</li>
+                    </ol>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row">
+        <div class="col-lg-8 mx-auto text-center">
+            <h2 class="mb-4">Ready to get started?</h2>
+            <p class="lead mb-4">Join thousands of professionals who have transformed their cold email strategy with Inbox Genie.</p>
+            <div class="d-flex justify-content-center">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg me-3">Sign Up Now</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-secondary btn-lg">Log In</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

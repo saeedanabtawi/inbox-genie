@@ -1,0 +1,362 @@
+{% extends "base.html" %}
+
+{% block title %}Bulk Emails - Inbox Genie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .upload-section {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .results-section {
+        background-color: white;
+        border-radius: 10px;
+        padding: 25px;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    }
+    .csv-input {
+        height: 150px;
+        font-family: monospace;
+    }
+    .email-accordion-button:not(.collapsed) {
+        background-color: rgba(111, 66, 193, 0.1);
+        color: #6f42c1;
+    }
+    .email-preview {
+        white-space: pre-wrap;
+        font-family: 'Arial', sans-serif;
+        border-left: 4px solid #6f42c1;
+        padding: 15px;
+        background-color: #f8f9fa;
+    }
+    .copy-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container">
+        <a class="navbar-brand" href="/"><i class="fas fa-envelope-open-text me-2"></i>Inbox Genie</a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav ms-auto">
+                <li class="nav-item">
+                    <a class="nav-link" href="/">Home</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link active" href="/bulk">Bulk Emails</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="/about">About</a>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>
+
+<div class="container mt-4">
+    <div class="row">
+        <div class="col-lg-12 text-center mb-4">
+            <h1 class="display-4"><i class="fas fa-envelopes-bulk text-primary me-3"></i>Bulk Email Personalization</h1>
+            <p class="lead">Generate personalized emails for multiple recipients at once</p>
+            <hr class="my-4">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-5">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-file-csv me-2"></i>Upload Recipients Data</h5>
+                </div>
+                <div class="card-body">
+                    <form id="bulkUploadForm">
+                        <div class="mb-3">
+                            <label for="csvFile" class="form-label">CSV File with Recipient Data</label>
+                            <input class="form-control" type="file" id="csvFile" accept=".csv">
+                            <div class="form-text">
+                                The CSV file must include at minimum these columns: <code>name</code>, <code>role</code>, <code>company</code>
+                            </div>
+                        </div>
+                        
+                        <div class="alert alert-info">
+                            <h6><i class="fas fa-lightbulb me-2"></i>Recommended CSV Format:</h6>
+                            <p class="mb-2">For best results, include the following columns:</p>
+                            <ul class="mb-0">
+                                <li><strong>name</strong> - Recipient's full name</li>
+                                <li><strong>role</strong> - Job title or position</li>
+                                <li><strong>company</strong> - Company name</li>
+                                <li><strong>industry</strong> - Industry or sector</li>
+                                <li><strong>linkedin_profile</strong> - Notes from their LinkedIn</li>
+                                <li><strong>recent_activity</strong> - Recent achievements or activities</li>
+                                <li><strong>industry_news</strong> - Relevant industry news</li>
+                                <li><strong>pain_points</strong> - Specific challenges they face</li>
+                            </ul>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <a href="static/templates/sample_recipients.csv" download class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-download me-2"></i>Download Sample CSV
+                            </a>
+                        </div>
+                        
+                        <div class="d-grid mb-3">
+                            <button type="button" class="btn btn-outline-primary" id="previewCsvBtn">
+                                <i class="fas fa-eye me-2"></i>Preview CSV Data
+                            </button>
+                        </div>
+                        
+                        <div class="d-grid">
+                            <button type="submit" class="btn btn-primary" id="generateBulkBtn">
+                                <i class="fas fa-wand-magic-sparkles me-2"></i>Generate Personalized Emails
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <h5 class="mb-0"><i class="fas fa-table me-2"></i>CSV Preview</h5>
+                </div>
+                <div class="card-body p-0">
+                    <div id="csvPreviewContainer" class="table-responsive" style="max-height: 300px;">
+                        <div class="text-center py-5 text-muted">
+                            <i class="fas fa-file-csv fa-2x mb-3"></i>
+                            <p>CSV preview will appear here</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-7">
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-light">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-envelopes-bulk me-2"></i>Generated Emails</h5>
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary me-2" id="downloadAllBtn" disabled>
+                                <i class="fas fa-download me-2"></i>Download All
+                            </button>
+                            <button class="btn btn-sm btn-outline-secondary" id="collapseAllBtn" disabled>
+                                <i class="fas fa-compress-alt me-2"></i>Collapse All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div id="loadingIndicator" class="text-center d-none">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-3">Processing your recipients data and generating personalized emails...</p>
+                    </div>
+                    
+                    <!-- Error messages will be displayed here -->
+                    <div id="errorContainer" class="d-none">
+                        <div class="alert alert-danger">
+                            <h6><i class="fas fa-exclamation-triangle me-2"></i>Errors Found:</h6>
+                            <ul id="errorList" class="mb-0"></ul>
+                        </div>
+                    </div>
+                    
+                    <div id="bulkEmailsStats" class="d-none">
+                        <div class="alert alert-success mb-4">
+                            <div class="row text-center">
+                                <div class="col-md-4">
+                                    <div class="h3" id="totalRecipientsCount">0</div>
+                                    <div>Total Recipients</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="h3 text-success" id="successfulEmailsCount">0</div>
+                                    <div>Successful Emails</div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="h3 text-danger" id="failedEmailsCount">0</div>
+                                    <div>Failed Recipients</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div id="emailsAccordion" class="accordion">
+                        <!-- Generated emails will appear here as accordion items -->
+                    </div>
+                    
+                    <div id="noEmailsMessage" class="text-center py-5">
+                        <i class="fas fa-envelope-open-text fa-3x mb-3 text-muted"></i>
+                        <p class="text-muted">Your personalized emails will appear here</p>
+                        <p class="text-muted small">Upload a CSV file and click "Generate Personalized Emails" to start</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<footer class="footer mt-auto py-3 bg-light">
+    <div class="container text-center">
+        <span class="text-muted"> 2025 Inbox Genie | AI-Powered Cold Email Personalization Assistant</span>
+    </div>
+</footer>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script src="static/js/bulk-script.js"></script>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const bulkEmailForm = document.getElementById('bulkEmailForm');
+    const processingIndicator = document.getElementById('processingIndicator');
+    const resultsContainer = document.getElementById('resultsContainer');
+    const instructionsContainer = document.getElementById('instructionsContainer');
+    const emailAccordion = document.getElementById('emailAccordion');
+    const successCount = document.getElementById('successCount');
+    const totalCount = document.getElementById('totalCount');
+    const errorsAlert = document.getElementById('errorsAlert');
+    const errorsList = document.getElementById('errorsList');
+    const downloadAllBtn = document.getElementById('downloadAllBtn');
+    
+    bulkEmailForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        
+        // Show processing indicator
+        processingIndicator.classList.remove('d-none');
+        resultsContainer.style.display = 'none';
+        instructionsContainer.style.display = 'none';
+        
+        // Get CSV data
+        const csvData = document.getElementById('csvData').value;
+        
+        // Process CSV data
+        fetch('/process-bulk-emails', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ csv_data: csvData })
+        })
+        .then(response => response.json())
+        .then(data => {
+            // Hide processing indicator
+            processingIndicator.classList.add('d-none');
+            
+            // Update stats
+            successCount.textContent = data.successful_recipients;
+            totalCount.textContent = data.total_recipients;
+            
+            // Clear previous results
+            emailAccordion.innerHTML = '';
+            errorsList.innerHTML = '';
+            
+            // Display errors if any
+            if (data.errors && data.errors.length > 0) {
+                errorsAlert.style.display = 'block';
+                data.errors.forEach(error => {
+                    const errorItem = document.createElement('li');
+                    errorItem.textContent = error;
+                    errorsList.appendChild(errorItem);
+                });
+            } else {
+                errorsAlert.style.display = 'none';
+            }
+            
+            // Create email accordions
+            if (data.emails && data.emails.length > 0) {
+                data.emails.forEach((item, index) => {
+                    const recipient = item.recipient;
+                    const email = item.email;
+                    const accordionItem = document.createElement('div');
+                    accordionItem.className = 'accordion-item';
+                    
+                    const recipientName = recipient.name || 'Unnamed Recipient';
+                    const recipientCompany = recipient.company || 'Unknown Company';
+                    
+                    accordionItem.innerHTML = `
+                        <h2 class="accordion-header">
+                            <button class="accordion-button email-accordion-button collapsed" type="button" 
+                                    data-bs-toggle="collapse" data-bs-target="#email-collapse-${index}">
+                                <div>
+                                    <strong>${recipientName}</strong>
+                                    <span class="text-muted ms-2">${recipientCompany}</span>
+                                </div>
+                            </button>
+                        </h2>
+                        <div id="email-collapse-${index}" class="accordion-collapse collapse" data-bs-parent="#emailAccordion">
+                            <div class="accordion-body position-relative">
+                                <button class="btn btn-sm btn-outline-secondary copy-btn copy-email-btn" 
+                                        data-email-index="${index}">
+                                    <i class="bi bi-clipboard"></i> Copy
+                                </button>
+                                <div class="email-preview">${email.replace(/\n/g, '<br>')}</div>
+                            </div>
+                        </div>
+                    `;
+                    
+                    emailAccordion.appendChild(accordionItem);
+                });
+                
+                // Add copy functionality
+                document.querySelectorAll('.copy-email-btn').forEach(button => {
+                    button.addEventListener('click', function() {
+                        const index = this.getAttribute('data-email-index');
+                        const emailText = data.emails[index].email;
+                        
+                        navigator.clipboard.writeText(emailText)
+                            .then(() => {
+                                // Change button text temporarily
+                                const originalHTML = this.innerHTML;
+                                this.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                                setTimeout(() => {
+                                    this.innerHTML = originalHTML;
+                                }, 2000);
+                            })
+                            .catch(err => {
+                                console.error('Failed to copy text: ', err);
+                            });
+                    });
+                });
+                
+                // Add download all functionality
+                downloadAllBtn.addEventListener('click', function() {
+                    let allEmails = '';
+                    data.emails.forEach(item => {
+                        const recipient = item.recipient;
+                        allEmails += `--- Email for ${recipient.name || 'Unnamed Recipient'} at ${recipient.company || 'Unknown Company'} ---\n\n`;
+                        allEmails += item.email + '\n\n\n';
+                    });
+                    
+                    const blob = new Blob([allEmails], { type: 'text/plain' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'inbox-genie-bulk-emails.txt';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                });
+            }
+            
+            // Show results
+            resultsContainer.style.display = 'block';
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            processingIndicator.classList.add('d-none');
+            alert('Error processing CSV data. Please check your format and try again.');
+        });
+    });
+});
+</script>
+{% endblock %}
