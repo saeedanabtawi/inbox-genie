@@ -360,22 +360,6 @@ def bulk_emails():
     
     return render_template('bulk.html', templates=templates, custom_templates=custom_templates)
 
-@app.route('/single-email')
-@login_required
-def single_email():
-    """Render the single email generation page"""
-    # Get default templates
-    templates = {
-        'cold_email': EmailGenerator.get_default_template('cold_email'),
-        'follow_up': EmailGenerator.get_default_template('follow_up'),
-        'meeting_request': EmailGenerator.get_default_template('meeting_request')
-    }
-    
-    # In a real app, you would fetch custom templates from the database
-    custom_templates = []
-    
-    return render_template('single_email.html', templates=templates, custom_templates=custom_templates)
-
 @app.route('/templates')
 @login_required
 def manage_templates():
