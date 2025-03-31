@@ -1,0 +1,462 @@
+{% extends "base.html" %}
+
+{% block title %}Email Templates - Inbox Genie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .template-editor {
+        height: 350px;
+        font-family: monospace;
+        white-space: pre;
+    }
+    .template-card {
+        border-radius: 10px;
+        overflow: hidden;
+        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        transition: transform 0.2s;
+        height: 100%;
+    }
+    .template-card:hover {
+        transform: translateY(-5px);
+    }
+    .template-variables {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        padding: 15px;
+    }
+    .variable-badge {
+        background-color: #e9ecef;
+        border-radius: 4px;
+        padding: 2px 8px;
+        margin-right: 8px;
+        margin-bottom: 8px;
+        display: inline-block;
+        cursor: pointer;
+        transition: background-color 0.2s;
+    }
+    .variable-badge:hover {
+        background-color: #dee2e6;
+    }
+    .template-preview {
+        background-color: #f8f9fa;
+        border-left: 4px solid #6f42c1;
+        padding: 15px;
+        border-radius: 4px;
+        white-space: pre-wrap;
+        font-family: 'Arial', sans-serif;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <div class="row mb-5">
+        <div class="col-lg-12 text-center">
+            <h1>Email Template Management</h1>
+            <p class="lead">Customize your email templates to match your brand voice and outreach strategy</p>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <div class="alert alert-info">
+                <h5><i class="bi bi-info-circle-fill me-2"></i>Template Variables</h5>
+                <p>Use these variables in your templates to dynamically insert recipient information:</p>
+                <div>
+                    <span class="variable-badge" data-variable="{{name}}">{{name}}</span>
+                    <span class="variable-badge" data-variable="{{role}}">{{role}}</span>
+                    <span class="variable-badge" data-variable="{{company}}">{{company}}</span>
+                    <span class="variable-badge" data-variable="{{industry}}">{{industry}}</span>
+                    <span class="variable-badge" data-variable="{{recent_activity}}">{{recent_activity}}</span>
+                    <span class="variable-badge" data-variable="{{industry_news}}">{{industry_news}}</span>
+                    <span class="variable-badge" data-variable="{{pain_points}}">{{pain_points}}</span>
+                </div>
+                <p class="mt-3 mb-0">You can also use these variables for your information:</p>
+                <div>
+                    <span class="variable-badge" data-variable="{{username}}">{{username}}</span>
+                    <span class="variable-badge" data-variable="{{position}}">{{position}}</span>
+                    <span class="variable-badge" data-variable="{{contact_info}}">{{contact_info}}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div class="row mb-4">
+        <div class="col-lg-12">
+            <ul class="nav nav-tabs" id="templateTabs" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="cold-email-tab" data-bs-toggle="tab" data-bs-target="#cold-email" type="button" role="tab" aria-controls="cold-email" aria-selected="true">
+                        Cold Email
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="follow-up-tab" data-bs-toggle="tab" data-bs-target="#follow-up" type="button" role="tab" aria-controls="follow-up" aria-selected="false">
+                        Follow Up
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="meeting-request-tab" data-bs-toggle="tab" data-bs-target="#meeting-request" type="button" role="tab" aria-controls="meeting-request" aria-selected="false">
+                        Meeting Request
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="custom-template-tab" data-bs-toggle="tab" data-bs-target="#custom-template" type="button" role="tab" aria-controls="custom-template" aria-selected="false">
+                        <i class="bi bi-plus-circle me-1"></i> Custom Template
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content p-4 border border-top-0 rounded-bottom" id="templateTabsContent">
+                <!-- Cold Email Template -->
+                <div class="tab-pane fade show active" id="cold-email" role="tabpanel" aria-labelledby="cold-email-tab">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <h4 class="mb-3">Cold Email Template</h4>
+                            <p>This template is used for initial outreach to new prospects.</p>
+                            
+                            <form id="coldEmailForm">
+                                <div class="mb-3">
+                                    <label for="coldEmailEditor" class="form-label">Template Content</label>
+                                    <textarea class="form-control template-editor" id="coldEmailEditor" name="template_content">{{ templates.cold_email }}</textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-outline-secondary reset-btn" data-template="cold_email">
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i>Save Template
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-lg-5">
+                            <h4 class="mb-3">Template Preview</h4>
+                            <p>Here's how your email will look with sample data:</p>
+                            
+                            <div class="template-preview" id="coldEmailPreview"></div>
+                            
+                            <div class="mt-4">
+                                <h5>Best Practices</h5>
+                                <ul>
+                                    <li>Keep your opening personalized based on research</li>
+                                    <li>Clearly explain the value proposition</li>
+                                    <li>Address common pain points in their industry</li>
+                                    <li>Include a clear, specific call-to-action</li>
+                                    <li>Keep the email under 200 words</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Follow Up Template -->
+                <div class="tab-pane fade" id="follow-up" role="tabpanel" aria-labelledby="follow-up-tab">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <h4 class="mb-3">Follow Up Template</h4>
+                            <p>This template is used for following up with prospects who haven't responded.</p>
+                            
+                            <form id="followUpForm">
+                                <div class="mb-3">
+                                    <label for="followUpEditor" class="form-label">Template Content</label>
+                                    <textarea class="form-control template-editor" id="followUpEditor" name="template_content">{{ templates.follow_up }}</textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-outline-secondary reset-btn" data-template="follow_up">
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i>Save Template
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-lg-5">
+                            <h4 class="mb-3">Template Preview</h4>
+                            <p>Here's how your email will look with sample data:</p>
+                            
+                            <div class="template-preview" id="followUpPreview"></div>
+                            
+                            <div class="mt-4">
+                                <h5>Best Practices</h5>
+                                <ul>
+                                    <li>Reference your previous email</li>
+                                    <li>Provide additional value or information</li>
+                                    <li>Keep it shorter than the original email</li>
+                                    <li>Include a clear, low-friction next step</li>
+                                    <li>Make it easy to respond with a simple question</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Meeting Request Template -->
+                <div class="tab-pane fade" id="meeting-request" role="tabpanel" aria-labelledby="meeting-request-tab">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <h4 class="mb-3">Meeting Request Template</h4>
+                            <p>This template is used specifically for requesting meetings or calls.</p>
+                            
+                            <form id="meetingRequestForm">
+                                <div class="mb-3">
+                                    <label for="meetingRequestEditor" class="form-label">Template Content</label>
+                                    <textarea class="form-control template-editor" id="meetingRequestEditor" name="template_content">{{ templates.meeting_request }}</textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="button" class="btn btn-outline-secondary reset-btn" data-template="meeting_request">
+                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
+                                    </button>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i>Save Template
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-lg-5">
+                            <h4 class="mb-3">Template Preview</h4>
+                            <p>Here's how your email will look with sample data:</p>
+                            
+                            <div class="template-preview" id="meetingRequestPreview"></div>
+                            
+                            <div class="mt-4">
+                                <h5>Best Practices</h5>
+                                <ul>
+                                    <li>Be specific about the meeting purpose</li>
+                                    <li>Suggest specific times (provide options)</li>
+                                    <li>Keep it brief and focused</li>
+                                    <li>Explain what they'll gain from the meeting</li>
+                                    <li>Make it easy to schedule (suggest a scheduling link)</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Custom Template -->
+                <div class="tab-pane fade" id="custom-template" role="tabpanel" aria-labelledby="custom-template-tab">
+                    <div class="row">
+                        <div class="col-lg-7">
+                            <h4 class="mb-3">Custom Template</h4>
+                            <p>Create a custom template for your specific needs.</p>
+                            
+                            <form id="customTemplateForm">
+                                <div class="mb-3">
+                                    <label for="customTemplateName" class="form-label">Template Name</label>
+                                    <input type="text" class="form-control" id="customTemplateName" name="template_name">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="customTemplateEditor" class="form-label">Template Content</label>
+                                    <textarea class="form-control template-editor" id="customTemplateEditor" name="template_content"></textarea>
+                                </div>
+                                
+                                <div class="d-flex justify-content-between">
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="bi bi-save me-2"></i>Save Template
+                                    </button>
+                                </div>
+                            </form>
+                        </div>
+                        
+                        <div class="col-lg-5">
+                            <h4 class="mb-3">Template Preview</h4>
+                            <p>Here's how your email will look with sample data:</p>
+                            
+                            <div class="template-preview" id="customTemplatePreview"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const variableBadges = document.querySelectorAll('.variable-badge');
+    const coldEmailEditor = document.getElementById('coldEmailEditor');
+    const followUpEditor = document.getElementById('followUpEditor');
+    const meetingRequestEditor = document.getElementById('meetingRequestEditor');
+    const customTemplateEditor = document.getElementById('customTemplateEditor');
+    const coldEmailPreview = document.getElementById('coldEmailPreview');
+    const followUpPreview = document.getElementById('followUpPreview');
+    const meetingRequestPreview = document.getElementById('meetingRequestPreview');
+    const customTemplatePreview = document.getElementById('customTemplatePreview');
+    const resetButtons = document.querySelectorAll('.reset-btn');
+    
+    // Default templates (for reset functionality)
+    const defaultTemplates = {
+        cold_email: `{{ templates.cold_email|replace("\\", "\\\\")|replace("'", "\\'")|replace('\n', '\\n')|safe }}`,
+        follow_up: `{{ templates.follow_up|replace("\\", "\\\\")|replace("'", "\\'")|replace('\n', '\\n')|safe }}`,
+        meeting_request: `{{ templates.meeting_request|replace("\\", "\\\\")|replace("'", "\\'")|replace('\n', '\\n')|safe }}`
+    };
+    
+    // Sample data for preview
+    const sampleData = {
+        name: 'John Smith',
+        role: 'Director of Marketing',
+        company: 'Acme Corporation',
+        industry: 'Software',
+        recent_activity: 'presentation at the Digital Summit last month',
+        industry_news: 'recent funding round and expansion plans',
+        pain_points: 'scaling customer acquisition while maintaining ROI',
+        username: 'Sarah Johnson',
+        position: 'Sales Representative',
+        contact_info: 'sjohnson@example.com | (555) 123-4567'
+    };
+    
+    // Function to replace variables in template
+    function replaceVariables(template, data) {
+        let result = template;
+        for (const [key, value] of Object.entries(data)) {
+            result = result.replace(new RegExp('{{' + key + '}}', 'g'), value);
+        }
+        return result;
+    }
+    
+    // Function to update previews
+    function updatePreviews() {
+        coldEmailPreview.textContent = replaceVariables(coldEmailEditor.value, sampleData);
+        followUpPreview.textContent = replaceVariables(followUpEditor.value, sampleData);
+        meetingRequestPreview.textContent = replaceVariables(meetingRequestEditor.value, sampleData);
+        customTemplatePreview.textContent = replaceVariables(customTemplateEditor.value, sampleData);
+    }
+    
+    // Add variable to editor when badge is clicked
+    variableBadges.forEach(badge => {
+        badge.addEventListener('click', function() {
+            const variable = this.getAttribute('data-variable');
+            const activeElement = document.activeElement;
+            
+            if (activeElement.classList.contains('template-editor')) {
+                // Get cursor position
+                const cursorPos = activeElement.selectionStart;
+                const textBefore = activeElement.value.substring(0, cursorPos);
+                const textAfter = activeElement.value.substring(cursorPos);
+                
+                // Insert variable at cursor position
+                activeElement.value = textBefore + variable + textAfter;
+                
+                // Update cursor position
+                activeElement.selectionStart = cursorPos + variable.length;
+                activeElement.selectionEnd = cursorPos + variable.length;
+                activeElement.focus();
+                
+                // Update preview
+                updatePreviews();
+            }
+        });
+    });
+    
+    // Update previews when editors change
+    coldEmailEditor.addEventListener('input', updatePreviews);
+    followUpEditor.addEventListener('input', updatePreviews);
+    meetingRequestEditor.addEventListener('input', updatePreviews);
+    customTemplateEditor.addEventListener('input', updatePreviews);
+    
+    // Reset buttons
+    resetButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const templateType = this.getAttribute('data-template');
+            const defaultTemplate = defaultTemplates[templateType];
+            
+            if (templateType === 'cold_email') {
+                coldEmailEditor.value = defaultTemplate;
+            } else if (templateType === 'follow_up') {
+                followUpEditor.value = defaultTemplate;
+            } else if (templateType === 'meeting_request') {
+                meetingRequestEditor.value = defaultTemplate;
+            }
+            
+            updatePreviews();
+        });
+    });
+    
+    // Handle form submissions
+    document.getElementById('coldEmailForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveTemplate('cold_email', coldEmailEditor.value);
+    });
+    
+    document.getElementById('followUpForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveTemplate('follow_up', followUpEditor.value);
+    });
+    
+    document.getElementById('meetingRequestForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveTemplate('meeting_request', meetingRequestEditor.value);
+    });
+    
+    document.getElementById('customTemplateForm').addEventListener('submit', function(e) {
+        e.preventDefault();
+        saveCustomTemplate(customTemplateEditor.value, document.getElementById('customTemplateName').value);
+    });
+    
+    // Function to save template
+    function saveTemplate(templateType, templateContent) {
+        fetch('/save-template', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                template_type: templateType,
+                template_content: templateContent
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(data.message);
+            } else {
+                alert('Error saving template: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving template. Please try again.');
+        });
+    }
+    
+    // Function to save custom template
+    function saveCustomTemplate(templateContent, templateName) {
+        fetch('/save-custom-template', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                template_name: templateName,
+                template_content: templateContent
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Show success message
+                alert(data.message);
+            } else {
+                alert('Error saving custom template: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error saving custom template. Please try again.');
+        });
+    }
+    
+    // Initialize previews
+    updatePreviews();
+});
+</script>
+{% endblock %}

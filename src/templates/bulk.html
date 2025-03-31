@@ -54,6 +54,19 @@
                 <h3 class="mb-4">Upload CSV Data</h3>
                 <form id="bulkEmailForm">
                     <div class="mb-3">
+                        <label for="templateSelect" class="form-label">Email Template</label>
+                        <select class="form-select mb-3" id="templateSelect">
+                            <option value="cold_email">Cold Email</option>
+                            <option value="follow_up">Follow-Up</option>
+                            <option value="meeting_request">Meeting Request</option>
+                            {% for template in custom_templates %}
+                            <option value="custom:{{ template.id }}">{{ template.name }}</option>
+                            {% endfor %}
+                        </select>
+                        <div class="template-preview mb-3 p-3 bg-light border rounded" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9em;" id="templatePreview"></div>
+                    </div>
+                    
+                    <div class="mb-3">
                         <label for="csvData" class="form-label">Paste CSV Data</label>
                         <textarea class="form-control csv-input" id="csvData" rows="6" placeholder="name,role,company,industry,recent_activity,industry_news,pain_points&#10;John Doe,CEO,Acme Corp,Technology,recent TechCrunch interview,Series B funding,scaling operations"></textarea>
                     </div>
@@ -125,148 +138,213 @@
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    const bulkEmailForm = document.getElementById('bulkEmailForm');
-    const processingIndicator = document.getElementById('processingIndicator');
-    const resultsContainer = document.getElementById('resultsContainer');
-    const instructionsContainer = document.getElementById('instructionsContainer');
-    const emailAccordion = document.getElementById('emailAccordion');
-    const successCount = document.getElementById('successCount');
-    const totalCount = document.getElementById('totalCount');
-    const errorsAlert = document.getElementById('errorsAlert');
-    const errorsList = document.getElementById('errorsList');
-    const downloadAllBtn = document.getElementById('downloadAllBtn');
-    
-    bulkEmailForm.addEventListener('submit', function(e) {
-        e.preventDefault();
-        
-        // Show processing indicator
-        processingIndicator.classList.remove('d-none');
-        resultsContainer.style.display = 'none';
-        instructionsContainer.style.display = 'none';
-        
-        // Get CSV data
-        const csvData = document.getElementById('csvData').value;
-        
-        // Process CSV data
-        fetch('/api/process-bulk-emails', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ csv_data: csvData })
-        })
+    // Template definitions with required fields - will be populated from API
+    const templates = {
+        cold_email: {
+            content: "",
+            required: ['name', 'role', 'company']
+        },
+        follow_up: {
+            content: "",
+            required: ['name', 'company', 'pain_points']
+        },
+        meeting_request: {
+            content: "",
+            required: ['name', 'company', 'pain_points']
+        }
+    };
+
+    // Fetch templates from API on load
+    fetch('/api/templates')
         .then(response => response.json())
         .then(data => {
-            // Hide processing indicator
-            processingIndicator.classList.add('d-none');
+            // Update template contents
+            if (data.cold_email) templates.cold_email.content = data.cold_email;
+            if (data.follow_up) templates.follow_up.content = data.follow_up;
+            if (data.meeting_request) templates.meeting_request.content = data.meeting_request;
             
-            // Update stats
-            successCount.textContent = data.successful_recipients;
-            totalCount.textContent = data.total_recipients;
-            
-            // Clear previous results
-            emailAccordion.innerHTML = '';
-            errorsList.innerHTML = '';
-            
-            // Display errors if any
-            if (data.errors && data.errors.length > 0) {
-                errorsAlert.style.display = 'block';
-                data.errors.forEach(error => {
-                    const errorItem = document.createElement('li');
-                    errorItem.textContent = error;
-                    errorsList.appendChild(errorItem);
-                });
-            } else {
-                errorsAlert.style.display = 'none';
-            }
-            
-            // Create email accordions
-            if (data.emails && data.emails.length > 0) {
-                data.emails.forEach((item, index) => {
-                    const recipient = item.recipient;
-                    const email = item.email;
-                    const accordionItem = document.createElement('div');
-                    accordionItem.className = 'accordion-item';
-                    
-                    const recipientName = recipient.name || 'Unnamed Recipient';
-                    const recipientCompany = recipient.company || 'Unknown Company';
-                    
-                    accordionItem.innerHTML = `
-                        <h2 class="accordion-header">
-                            <button class="accordion-button email-accordion-button collapsed" type="button" 
-                                    data-bs-toggle="collapse" data-bs-target="#email-collapse-${index}">
-                                <div>
-                                    <strong>${recipientName}</strong>
-                                    <span class="text-muted ms-2">${recipientCompany}</span>
-                                </div>
-                            </button>
-                        </h2>
-                        <div id="email-collapse-${index}" class="accordion-collapse collapse" data-bs-parent="#emailAccordion">
-                            <div class="accordion-body position-relative">
-                                <button class="btn btn-sm btn-outline-secondary copy-btn copy-email-btn" 
-                                        data-email-index="${index}">
-                                    <i class="bi bi-clipboard"></i> Copy
-                                </button>
-                                <div class="email-preview">${email.replace(/\n/g, '<br>')}</div>
-                            </div>
-                        </div>
-                    `;
-                    
-                    emailAccordion.appendChild(accordionItem);
-                });
-                
-                // Add copy functionality
-                document.querySelectorAll('.copy-email-btn').forEach(button => {
-                    button.addEventListener('click', function() {
-                        const index = this.getAttribute('data-email-index');
-                        const emailText = data.emails[index].email;
-                        
-                        navigator.clipboard.writeText(emailText)
-                            .then(() => {
-                                // Change button text temporarily
-                                const originalHTML = this.innerHTML;
-                                this.innerHTML = '<i class="bi bi-check2"></i> Copied!';
-                                setTimeout(() => {
-                                    this.innerHTML = originalHTML;
-                                }, 2000);
-                            })
-                            .catch(err => {
-                                console.error('Failed to copy text: ', err);
-                            });
-                    });
-                });
-                
-                // Add download all functionality
-                downloadAllBtn.addEventListener('click', function() {
-                    let allEmails = '';
-                    data.emails.forEach(item => {
-                        const recipient = item.recipient;
-                        allEmails += `--- Email for ${recipient.name || 'Unnamed Recipient'} at ${recipient.company || 'Unknown Company'} ---\n\n`;
-                        allEmails += item.email + '\n\n\n';
-                    });
-                    
-                    const blob = new Blob([allEmails], { type: 'text/plain' });
-                    const url = URL.createObjectURL(blob);
-                    const a = document.createElement('a');
-                    a.href = url;
-                    a.download = 'inbox-genie-bulk-emails.txt';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    URL.revokeObjectURL(url);
-                });
-            }
-            
-            // Show results
-            resultsContainer.style.display = 'block';
+            // Update the template preview for the initially selected template
+            updateTemplatePreview();
         })
         .catch(error => {
-            console.error('Error:', error);
-            processingIndicator.classList.add('d-none');
-            alert('Error processing CSV data. Please check your format and try again.');
+            console.error('Error fetching templates:', error);
+        });
+        
+    document.addEventListener('DOMContentLoaded', function() {
+        const bulkEmailForm = document.getElementById('bulkEmailForm');
+        const csvData = document.getElementById('csvData');
+        const processingIndicator = document.getElementById('processingIndicator');
+        const resultsContainer = document.getElementById('resultsContainer');
+        const instructionsContainer = document.getElementById('instructionsContainer');
+        const emailAccordion = document.getElementById('emailAccordion');
+        const successCount = document.getElementById('successCount');
+        const totalCount = document.getElementById('totalCount');
+        const errorsAlert = document.getElementById('errorsAlert');
+        const errorsList = document.getElementById('errorsList');
+        const downloadAllBtn = document.getElementById('downloadAllBtn');
+        const templateSelect = document.getElementById('templateSelect');
+        const templatePreview = document.getElementById('templatePreview');
+        
+        // Update template preview on change
+        templateSelect.addEventListener('change', updateTemplatePreview);
+        
+        // Function to update the template preview
+        function updateTemplatePreview() {
+            const selectedTemplate = templateSelect.value;
+            
+            if (selectedTemplate.startsWith('custom:')) {
+                const templateId = selectedTemplate.split(':')[1];
+                // Fetch custom template content from API
+                fetch(`/api/templates/${templateId}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        templatePreview.innerText = data.content;
+                    })
+                    .catch(error => {
+                        console.error('Error fetching custom template:', error);
+                    });
+            } else if (templates[selectedTemplate]) {
+                // Use built-in template
+                templatePreview.innerText = templates[selectedTemplate].content;
+            } else {
+                // Default message if template not found
+                templatePreview.innerText = "Template preview not available.";
+            }
+        }
+        
+        bulkEmailForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            // Show processing indicator
+            processingIndicator.classList.remove('d-none');
+            resultsContainer.style.display = 'none';
+            instructionsContainer.style.display = 'none';
+            
+            // Get CSV data and selected template
+            const csvDataValue = csvData.value;
+            const selectedTemplate = templateSelect.value;
+            
+            // Process CSV data
+            fetch('/api/process-bulk-emails', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ 
+                    csv_data: csvDataValue, 
+                    template: selectedTemplate 
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // Hide processing indicator
+                processingIndicator.classList.add('d-none');
+                
+                // Update stats
+                successCount.textContent = data.successful_recipients;
+                totalCount.textContent = data.total_recipients;
+                
+                // Clear previous results
+                emailAccordion.innerHTML = '';
+                errorsList.innerHTML = '';
+                
+                // Display errors if any
+                if (data.errors && data.errors.length > 0) {
+                    errorsAlert.style.display = 'block';
+                    data.errors.forEach(error => {
+                        const errorItem = document.createElement('li');
+                        errorItem.textContent = error;
+                        errorsList.appendChild(errorItem);
+                    });
+                } else {
+                    errorsAlert.style.display = 'none';
+                }
+                
+                // Create email accordions
+                if (data.emails && data.emails.length > 0) {
+                    data.emails.forEach((item, index) => {
+                        const recipient = item.recipient;
+                        const email = item.email;
+                        const accordionItem = document.createElement('div');
+                        accordionItem.className = 'accordion-item';
+                        
+                        const recipientName = recipient.name || 'Unnamed Recipient';
+                        const recipientCompany = recipient.company || 'Unknown Company';
+                        
+                        accordionItem.innerHTML = 
+                            '<h2 class="accordion-header">' +
+                            '<button class="accordion-button email-accordion-button collapsed" type="button" ' +
+                            'data-bs-toggle="collapse" data-bs-target="#email-collapse-' + index + '">' +
+                            '<div>' +
+                            '<strong>' + recipientName + '</strong>' +
+                            '<span class="text-muted ms-2">' + recipientCompany + '</span>' +
+                            '</div>' +
+                            '</button>' +
+                            '</h2>' +
+                            '<div id="email-collapse-' + index + '" class="accordion-collapse collapse" data-bs-parent="#emailAccordion">' +
+                            '<div class="accordion-body position-relative">' +
+                            '<button class="btn btn-sm btn-outline-secondary copy-btn copy-email-btn" ' +
+                            'data-email-index="' + index + '">' +
+                            '<i class="bi bi-clipboard"></i> Copy' +
+                            '</button>' +
+                            '<div class="email-preview">' + email.replace(/\n/g, '<br>') + '</div>' +
+                            '</div>' +
+                            '</div>';
+                        
+                        emailAccordion.appendChild(accordionItem);
+                    });
+                    
+                    // Add copy functionality
+                    document.querySelectorAll('.copy-email-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const index = this.getAttribute('data-email-index');
+                            const emailText = data.emails[index].email;
+                            
+                            navigator.clipboard.writeText(emailText)
+                                .then(() => {
+                                    // Change button text temporarily
+                                    const originalHTML = this.innerHTML;
+                                    this.innerHTML = '<i class="bi bi-check2"></i> Copied!';
+                                    setTimeout(() => {
+                                        this.innerHTML = originalHTML;
+                                    }, 2000);
+                                })
+                                .catch(err => {
+                                    console.error('Failed to copy text: ', err);
+                                });
+                        });
+                    });
+                    
+                    // Add download all functionality
+                    downloadAllBtn.addEventListener('click', function() {
+                        let allEmails = '';
+                        data.emails.forEach(item => {
+                            const recipient = item.recipient;
+                            allEmails += `--- Email for ${recipient.name || 'Unnamed Recipient'} at ${recipient.company || 'Unknown Company'} ---\n\n`;
+                            allEmails += item.email + '\n\n\n';
+                        });
+                        
+                        const blob = new Blob([allEmails], { type: 'text/plain' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        a.href = url;
+                        a.download = 'inbox-genie-bulk-emails.txt';
+                        document.body.appendChild(a);
+                        a.click();
+                        document.body.removeChild(a);
+                        URL.revokeObjectURL(url);
+                    });
+                }
+                
+                // Show results
+                resultsContainer.style.display = 'block';
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                processingIndicator.classList.add('d-none');
+                alert('Error processing CSV data. Please check your format and try again.');
+            });
         });
     });
-});
 </script>
 {% endblock %}

@@ -43,12 +43,13 @@ def load_user(user_id):
 
 class EmailGenerator:
     @staticmethod
-    def generate_email(recipient_data):
+    def generate_email(recipient_data, template_type='cold_email'):
         """
         Generate a personalized cold email based on recipient data
         
         Args:
             recipient_data (dict): Dictionary containing recipient information
+            template_type (str): Type of email template to use
             
         Returns:
             str: Personalized email content
@@ -77,7 +78,53 @@ class EmailGenerator:
             value_prop = f"Our solution has helped many companies in {industry} increase efficiency by 30% and reduce costs significantly."
         
         # Construct the full email
-        email = f"""Subject: Quick Question About {company}'s Approach to Growth
+        if template_type == 'cold_email':
+            email = f"""Subject: Quick Question About {company}'s Approach to Growth
+
+Hi {name},
+
+{opening}
+
+{value_prop}
+
+I'd love to share how we've helped other {industry} companies achieve similar results. Would you be open to a brief 15-minute call next week to explore if there might be a fit?
+
+Looking forward to your response,
+
+{current_user.username if current_user.is_authenticated else '[Your Name]'}
+[Your Position]
+[Your Company]
+[Your Contact Information]"""
+        elif template_type == 'follow_up':
+            email = f"""Hi {name},
+
+I wanted to follow up on my previous email regarding how we can help {company} with {pain_points}. Have you had a chance to consider my proposal?
+
+I'm available to discuss how our solution has helped companies like yours improve their results by 30% on average.
+
+Let me know if you have 15 minutes this week for a quick call.
+
+Best regards,
+{current_user.username if current_user.is_authenticated else '[Your Name]'}
+[Your Position]
+[Your Company]
+[Your Contact Information]"""
+        elif template_type == 'meeting_request':
+            email = f"""Hi {name},
+
+I'd like to schedule a brief 15-minute call to discuss how our solution can help {company} address {pain_points}.
+
+Are you available next Tuesday or Wednesday afternoon?
+
+Looking forward to connecting!
+
+Best regards,
+{current_user.username if current_user.is_authenticated else '[Your Name]'}
+[Your Position]
+[Your Company]
+[Your Contact Information]"""
+        else:
+            email = f"""Subject: Quick Question About {company}'s Approach to Growth
 
 Hi {name},
 
@@ -97,11 +144,86 @@ Looking forward to your response,
         return email
     
     @staticmethod
-    def process_csv_data(csv_data):
+    def get_default_template(template_type='cold_email'):
+        """
+        Get the default email template
+        
+        Args:
+            template_type (str): Type of email template to use
+            
+        Returns:
+            str: Default email template
+        """
+        if template_type == 'cold_email':
+            return """Subject: Quick Question About {{company}}'s Approach to Growth
+
+Hi {{name}},
+
+I hope this email finds you well. I noticed your role as {{role}} at {{company}} and thought I'd reach out.
+
+Many {{role}}s in {{industry}} face challenges with {{pain_points}}. Our solution has helped similar companies increase efficiency by 30% and reduce costs significantly.
+
+I'd love to share how we've helped other {{industry}} companies achieve similar results. Would you be open to a brief 15-minute call next week to explore if there might be a fit?
+
+Looking forward to your response,
+
+{{username}}
+{{position}}
+{{company}}
+{{contact_info}}"""
+        elif template_type == 'follow_up':
+            return """Hi {{name}},
+
+I wanted to follow up on my previous email regarding how we can help {{company}} with {{pain_points}}. Have you had a chance to consider my proposal?
+
+I'm available to discuss how our solution has helped companies like yours improve their results by 30% on average.
+
+Let me know if you have 15 minutes this week for a quick call.
+
+Best regards,
+{{username}}
+{{position}}
+{{company}}
+{{contact_info}}"""
+        elif template_type == 'meeting_request':
+            return """Hi {{name}},
+
+I'd like to schedule a brief 15-minute call to discuss how our solution can help {{company}} address {{pain_points}}.
+
+Are you available next Tuesday or Wednesday afternoon?
+
+Looking forward to connecting!
+
+Best regards,
+{{username}}
+{{position}}
+{{company}}
+{{contact_info}}"""
+        else:
+            return """Subject: Quick Question About {{company}}'s Approach to Growth
+
+Hi {{name}},
+
+I hope this email finds you well. I noticed your role as {{role}} at {{company}} and thought I'd reach out.
+
+Many {{role}}s in {{industry}} face challenges with {{pain_points}}. Our solution has helped similar companies increase efficiency by 30% and reduce costs significantly.
+
+I'd love to share how we've helped other {{industry}} companies achieve similar results. Would you be open to a brief 15-minute call next week to explore if there might be a fit?
+
+Looking forward to your response,
+
+{{username}}
+{{position}}
+{{company}}
+{{contact_info}}"""
+    
+    @staticmethod
+    def process_csv_data(csv_data, template_type='cold_email'):
         """Process CSV data and generate emails for each recipient
         
         Args:
             csv_data (str): CSV data as a string
+            template_type (str): Type of email template to use
             
         Returns:
             dict: Dictionary containing generated emails and validation results
@@ -153,7 +275,7 @@ Looking forward to your response,
                 
                 try:
                     # Generate email for this recipient
-                    email = EmailGenerator.generate_email(standardized_row)
+                    email = EmailGenerator.generate_email(standardized_row, template_type)
                     result['emails'].append({
                         'recipient': standardized_row,
                         'email': email
@@ -226,13 +348,75 @@ def change_password():
 @login_required
 def bulk_emails():
     """Render the bulk email page"""
-    return render_template('bulk.html')
+    # Get default templates
+    templates = {
+        'cold_email': EmailGenerator.get_default_template('cold_email'),
+        'follow_up': EmailGenerator.get_default_template('follow_up'),
+        'meeting_request': EmailGenerator.get_default_template('meeting_request')
+    }
+    
+    # In a real app, you would fetch custom templates from the database
+    custom_templates = []
+    
+    return render_template('bulk.html', templates=templates, custom_templates=custom_templates)
 
 @app.route('/single-email')
 @login_required
 def single_email():
     """Render the single email generation page"""
-    return render_template('single_email.html')
+    # Get default templates
+    templates = {
+        'cold_email': EmailGenerator.get_default_template('cold_email'),
+        'follow_up': EmailGenerator.get_default_template('follow_up'),
+        'meeting_request': EmailGenerator.get_default_template('meeting_request')
+    }
+    
+    # In a real app, you would fetch custom templates from the database
+    custom_templates = []
+    
+    return render_template('single_email.html', templates=templates, custom_templates=custom_templates)
+
+@app.route('/templates')
+@login_required
+def manage_templates():
+    """Render the template management page"""
+    # Get the current templates
+    default_templates = {
+        'cold_email': EmailGenerator.get_default_template('cold_email'),
+        'follow_up': EmailGenerator.get_default_template('follow_up'),
+        'meeting_request': EmailGenerator.get_default_template('meeting_request')
+    }
+    
+    # In a real application, you would load user-customized templates from a database
+    return render_template('template_management.html', templates=default_templates)
+
+@app.route('/save-template', methods=['POST'])
+@login_required
+def save_template():
+    """Save a customized email template"""
+    data = request.json
+    template_type = data.get('template_type')
+    template_content = data.get('template_content')
+    
+    # In a real application, you would save this to a database
+    # For this demo, we'll just return success
+    return jsonify({'success': True, 'message': f'Template "{template_type}" saved successfully'})
+
+@app.route('/save-custom-template', methods=['POST'])
+@login_required
+def save_custom_template():
+    """Save a new custom template"""
+    data = request.json
+    template_name = data.get('template_name')
+    template_content = data.get('template_content')
+    
+    # Validate inputs
+    if not template_name or not template_content:
+        return jsonify({'success': False, 'message': 'Template name and content are required'})
+    
+    # In a real application, you would save this to a database
+    # For this demo, we'll just return success
+    return jsonify({'success': True, 'message': f'Custom template "{template_name}" created successfully'})
 
 # Add alias for backward compatibility
 @app.route('/bulk')
@@ -247,10 +431,24 @@ def email_generator():
     """API endpoint to generate a personalized email"""
     data = request.json
     
-    # Generate the email
-    email_content = EmailGenerator.generate_email(data)
+    # Check if a specific template was requested
+    template_type = data.get('template', 'cold_email')
+    
+    # Generate the email using the selected template
+    email_content = EmailGenerator.generate_email(recipient_data=data, template_type=template_type)
     
     return jsonify({'email': email_content})
+
+@app.route('/get-templates')
+@login_required
+def get_templates():
+    """API endpoint to get available email templates"""
+    templates = {
+        'cold_email': EmailGenerator.get_default_template('cold_email'),
+        'follow_up': EmailGenerator.get_default_template('follow_up'),
+        'meeting_request': EmailGenerator.get_default_template('meeting_request')
+    }
+    return jsonify({'templates': templates})
 
 @app.route('/about')
 def about():
@@ -263,9 +461,10 @@ def process_bulk_emails():
     """API endpoint to process bulk emails"""
     data = request.json
     csv_data = data.get('csv_data', '')
+    template_type = data.get('template', 'cold_email')
     
-    # Process CSV and generate emails
-    result = EmailGenerator.process_csv_data(csv_data)
+    # Process CSV and generate emails with the selected template
+    result = EmailGenerator.process_csv_data(csv_data, template_type)
     return jsonify(result)
 
 @app.route('/auth/login')
@@ -277,6 +476,32 @@ def login_page():
 def register_page():
     """Redirect to auth register route"""
     return redirect(url_for('auth.register'))
+
+@app.route('/api/templates', methods=['GET'])
+@login_required
+def get_all_templates():
+    """API endpoint to get all available email templates"""
+    templates = {
+        'cold_email': EmailGenerator.get_default_template('cold_email'),
+        'follow_up': EmailGenerator.get_default_template('follow_up'),
+        'meeting_request': EmailGenerator.get_default_template('meeting_request')
+    }
+    
+    # In a real app, you would also include custom templates from the database
+    
+    return jsonify(templates)
+
+@app.route('/api/templates/<template_type>', methods=['GET'])
+@login_required
+def get_template(template_type):
+    """API endpoint to get a specific email template"""
+    if template_type.startswith('custom:'):
+        # This would fetch a custom template from the database
+        template_id = template_type.split(':')[1]
+        return jsonify({'content': 'Placeholder for custom template'})
+    else:
+        template = EmailGenerator.get_default_template(template_type)
+        return jsonify({'content': template})
 
 # Create error templates directory if it doesn't exist
 @app.before_first_request
