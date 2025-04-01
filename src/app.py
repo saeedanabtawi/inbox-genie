@@ -6,6 +6,7 @@ from flask_login import login_required, current_user, LoginManager
 import secrets
 import datetime
 from datetime import timedelta
+from sqlalchemy import func
 
 # Load environment variables
 try:
@@ -15,7 +16,7 @@ except ImportError:
     print("python-dotenv not found, using default environment variables")
 
 # Import models and authentication utilities
-from .models import db, User
+from .models import db, User, SMTPConfig, EmailHistory, EmailTemplate
 from .auth import init_auth, auth_bp
 
 # Initialize Flask app
@@ -430,21 +431,118 @@ def change_password():
         flash('Password changed successfully!', 'success')
     return redirect(url_for('profile'))
 
-@app.route('/bulk-emails')
+@app.route('/bulk', methods=['GET'])
 @login_required
-def bulk_emails():
-    """Render the bulk email page"""
-    # Get default templates
-    templates = {
-        'cold_email': EmailGenerator.get_default_template('cold_email'),
-        'follow_up': EmailGenerator.get_default_template('follow_up'),
-        'meeting_request': EmailGenerator.get_default_template('meeting_request')
-    }
+def bulk():
+    # Get custom templates for the current user
+    custom_templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
+    # Get SMTP configurations for the current user
+    smtp_configs = SMTPConfig.query.filter_by(user_id=current_user.id).all()
+    # Get email history for the current user
+    email_history = EmailHistory.query.filter_by(user_id=current_user.id).order_by(EmailHistory.sent_at.desc()).limit(50).all()
     
-    # In a real app, you would fetch custom templates from the database
-    custom_templates = []
+    return render_template('bulk.html', custom_templates=custom_templates, smtp_configs=smtp_configs, email_history=email_history, EmailGenerator=EmailGenerator)
+
+@app.route('/send-bulk-emails', methods=['POST'])
+@login_required
+def send_bulk_emails():
+    if not current_user.is_authenticated:
+        return jsonify({"success": False, "error": "Authentication required"}), 401
+
+    data = request.json
+    if not data or 'emails' not in data or not data['emails']:
+        return jsonify({"success": False, "error": "No emails provided"}), 400
     
-    return render_template('bulk.html', templates=templates, custom_templates=custom_templates)
+    # Check if the user has SMTP configuration
+    smtp_config_id = data.get('smtp_config_id')
+    if not smtp_config_id:
+        return jsonify({"success": False, "error": "No SMTP configuration selected"}), 400
+    
+    smtp_config = SMTPConfig.query.filter_by(id=smtp_config_id, user_id=current_user.id).first()
+    if not smtp_config:
+        return jsonify({"success": False, "error": "Invalid SMTP configuration"}), 400
+    
+    # Check if the user has reached the email limit
+    email_count = EmailHistory.query.filter_by(user_id=current_user.id, sent_at=func.date(func.now())).count()
+    email_limit = current_user.get_monthly_email_limit()
+    emails_to_send_count = len(data['emails'])
+    
+    if email_count + emails_to_send_count > email_limit and email_limit != float('inf'):
+        return jsonify({
+            "success": False, 
+            "error": f"You have reached your daily email limit ({email_limit}). Please upgrade your subscription to send more emails."
+        }), 403
+    
+    # Create an email service instance
+    email_service = EmailService(
+        smtp_server=smtp_config.smtp_server,
+        port=smtp_config.port,
+        username=smtp_config.username,
+        password=smtp_config.password,
+        use_tls=smtp_config.use_tls,
+        sender_email=smtp_config.email,
+        sender_name=smtp_config.name
+    )
+    
+    # Process each email
+    success_count = 0
+    failure_count = 0
+    error_messages = []
+    
+    for email_data in data['emails']:
+        recipient_email = email_data.get('recipient')
+        subject = email_data.get('subject', "No Subject")
+        content = email_data.get('content')
+        
+        if not recipient_email or not content:
+            failure_count += 1
+            error_messages.append(f"Missing data for email to {recipient_email}")
+            continue
+            
+        try:
+            # Send the email
+            email_service.send_email(recipient_email, subject, content)
+            
+            # Record the email history
+            email_history = EmailHistory(
+                user_id=current_user.id,
+                smtp_config_id=smtp_config.id,
+                recipient=recipient_email,
+                subject=subject,
+                content=content,
+                status='sent',
+                sent_at=datetime.now()
+            )
+            db.session.add(email_history)
+            success_count += 1
+            
+        except Exception as e:
+            failure_count += 1
+            error_message = str(e)
+            error_messages.append(f"Failed to send email to {recipient_email}: {error_message}")
+            
+            # Record the failed email
+            email_history = EmailHistory(
+                user_id=current_user.id,
+                smtp_config_id=smtp_config.id,
+                recipient=recipient_email,
+                subject=subject,
+                content=content,
+                status='failed',
+                error_message=error_message,
+                sent_at=datetime.now()
+            )
+            db.session.add(email_history)
+    
+    # Commit all the email history records at once
+    db.session.commit()
+    
+    return jsonify({
+        "success": True,
+        "sent": success_count,
+        "failed": failure_count,
+        "errors": error_messages if failure_count > 0 else None
+    })
 
 @app.route('/templates')
 @login_required
@@ -494,7 +592,7 @@ def save_custom_template():
 @login_required
 def bulk_emails_alias():
     """Alias for bulk_emails to maintain backward compatibility"""
-    return redirect(url_for('bulk_emails'))
+    return redirect(url_for('bulk'))
 
 @app.route('/generate-email', methods=['POST'])
 @login_required
@@ -753,7 +851,8 @@ def upgrade_subscription():
             else:
                 current_user.subscription_end_date = now + datetime.timedelta(days=30)
             
-            # In a real app, you would call db.session.commit() here
+            # Save changes to the database
+            db.session.commit()
             flash(f'Successfully upgraded to {plan_tiers[plan]} plan!', 'success')
         else:
             flash('Invalid plan selected', 'danger')
@@ -767,19 +866,24 @@ def update_billing_cycle():
     if request.method == 'POST':
         billing_cycle = request.form.get('billing_cycle', 'monthly')
         
-        # Update the user's billing preference
-        current_user.is_annual_billing = (billing_cycle == 'annual')
+        # Update the billing cycle
+        is_annual = (billing_cycle == 'annual')
+        current_user.is_annual_billing = is_annual
         
         # Update subscription end date based on new billing cycle
         now = datetime.datetime.utcnow()
-        if billing_cycle == 'annual':
+        if is_annual:
             current_user.subscription_end_date = now + datetime.timedelta(days=365)
-            flash('Updated to annual billing with 20% savings!', 'success')
+            savings = "20%"
         else:
             current_user.subscription_end_date = now + datetime.timedelta(days=30)
-            flash('Updated to monthly billing', 'success')
+            savings = "0%"
         
-        # In a real app, you would call db.session.commit() here
+        # Save changes to the database
+        db.session.commit()
+        
+        # Notify the user
+        flash(f'Successfully updated to {billing_cycle} billing (saving {savings})', 'success')
         
     return redirect(url_for('subscription'))
 
@@ -788,15 +892,257 @@ def update_billing_cycle():
 def downgrade_to_free():
     """Downgrade subscription to the free tier"""
     if request.method == 'POST':
-        # Update user's subscription information
+        # In a real app, you would handle cancellation logic, pro-rating, etc.
+        
+        # Set the user's subscription to Free
         current_user.subscription_tier = 'Free'
         current_user.subscription_end_date = None
-        current_user.subscription_start_date = None
         
-        # In a real app, you would call db.session.commit() here
-        flash('Your subscription has been canceled. You can still use the free features.', 'info')
+        # Save changes to the database
+        db.session.commit()
+        
+        # Notify the user
+        flash('Successfully downgraded to Free plan', 'success')
         
     return redirect(url_for('subscription'))
+
+@app.route('/email-settings')
+@login_required
+def email_settings():
+    """Render the email settings page"""
+    # Get user's SMTP configurations
+    smtp_configs = SMTPConfig.query.filter_by(user_id=current_user.id).all()
+    
+    # Get user's email history
+    email_history = EmailHistory.query.filter_by(user_id=current_user.id).order_by(EmailHistory.sent_at.desc()).limit(10).all()
+    
+    return render_template('email_settings.html', 
+                          smtp_configs=smtp_configs,
+                          email_history=email_history)
+
+@app.route('/add-smtp-config', methods=['POST'])
+@login_required
+def add_smtp_config():
+    """Add a new SMTP server configuration"""
+    try:
+        # If this is marked as default, unset other configs as default
+        if request.form.get('is_default'):
+            SMTPConfig.query.filter_by(user_id=current_user.id, is_default=True).update({'is_default': False})
+            db.session.commit()
+        
+        # Create new SMTP config
+        smtp_config = SMTPConfig(
+            user_id=current_user.id,
+            name=request.form.get('name'),
+            server=request.form.get('server'),
+            port=int(request.form.get('port')),
+            use_tls=bool(request.form.get('use_tls')),
+            username=request.form.get('username'),
+            password=request.form.get('password'),
+            email=request.form.get('email'),
+            display_name=request.form.get('display_name'),
+            reply_to=request.form.get('reply_to'),
+            is_default=bool(request.form.get('is_default'))
+        )
+        
+        db.session.add(smtp_config)
+        db.session.commit()
+        
+        flash('SMTP configuration added successfully', 'success')
+    except Exception as e:
+        flash(f'Error adding SMTP configuration: {str(e)}', 'danger')
+    
+    return redirect(url_for('email_settings'))
+
+@app.route('/update-smtp-config', methods=['POST'])
+@login_required
+def update_smtp_config():
+    """Update an existing SMTP server configuration"""
+    try:
+        config_id = request.form.get('config_id')
+        smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
+        
+        if not smtp_config:
+            flash('SMTP configuration not found', 'danger')
+            return redirect(url_for('email_settings'))
+        
+        # Update config details
+        smtp_config.name = request.form.get('name')
+        smtp_config.server = request.form.get('server')
+        smtp_config.port = int(request.form.get('port'))
+        smtp_config.use_tls = bool(request.form.get('use_tls'))
+        smtp_config.username = request.form.get('username')
+        
+        # Only update password if provided
+        if request.form.get('password').strip():
+            smtp_config.password = request.form.get('password')
+            
+        smtp_config.email = request.form.get('email')
+        smtp_config.display_name = request.form.get('display_name')
+        smtp_config.reply_to = request.form.get('reply_to')
+        
+        db.session.commit()
+        flash('SMTP configuration updated successfully', 'success')
+    except Exception as e:
+        flash(f'Error updating SMTP configuration: {str(e)}', 'danger')
+    
+    return redirect(url_for('email_settings'))
+
+@app.route('/delete-smtp-config', methods=['POST'])
+@login_required
+def delete_smtp_config():
+    """Delete an SMTP server configuration"""
+    try:
+        config_id = request.form.get('config_id')
+        smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
+        
+        if not smtp_config:
+            flash('SMTP configuration not found', 'danger')
+            return redirect(url_for('email_settings'))
+        
+        # If deleting default config, set another one as default if available
+        if smtp_config.is_default:
+            other_config = SMTPConfig.query.filter(
+                SMTPConfig.user_id == current_user.id,
+                SMTPConfig.id != smtp_config.id
+            ).first()
+            
+            if other_config:
+                other_config.is_default = True
+                
+        db.session.delete(smtp_config)
+        db.session.commit()
+        flash('SMTP configuration deleted successfully', 'success')
+    except Exception as e:
+        flash(f'Error deleting SMTP configuration: {str(e)}', 'danger')
+    
+    return redirect(url_for('email_settings'))
+
+@app.route('/set-default-smtp', methods=['POST'])
+@login_required
+def set_default_smtp():
+    """Set an SMTP configuration as default"""
+    try:
+        config_id = request.form.get('config_id')
+        
+        # Unset all configs as default
+        SMTPConfig.query.filter_by(user_id=current_user.id).update({'is_default': False})
+        
+        # Set the selected config as default
+        smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
+        if smtp_config:
+            smtp_config.is_default = True
+            db.session.commit()
+            flash('Default SMTP server updated successfully', 'success')
+        else:
+            flash('SMTP configuration not found', 'danger')
+    except Exception as e:
+        flash(f'Error updating default SMTP server: {str(e)}', 'danger')
+    
+    return redirect(url_for('email_settings'))
+
+@app.route('/get-smtp-config/<int:config_id>')
+@login_required
+def get_smtp_config(config_id):
+    """Get SMTP configuration details for editing"""
+    smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
+    
+    if smtp_config:
+        return jsonify({
+            'success': True,
+            'config': smtp_config.to_dict()
+        })
+    else:
+        return jsonify({
+            'success': False,
+            'message': 'SMTP configuration not found'
+        })
+
+@app.route('/test-smtp-connection/<int:config_id>', methods=['POST'])
+@login_required
+def test_smtp_connection(config_id):
+    """Test an SMTP server connection"""
+    try:
+        from .email_service import EmailService
+        
+        smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
+        
+        if not smtp_config:
+            return jsonify({
+                'success': False,
+                'message': 'SMTP configuration not found'
+            })
+        
+        # Test connection with EmailService
+        success, message = EmailService.test_smtp_connection(smtp_config.to_smtp_config())
+        
+        return jsonify({
+            'success': success,
+            'message': message
+        })
+    except Exception as e:
+        return jsonify({
+            'success': False,
+            'message': f'Error testing connection: {str(e)}'
+        })
+
+@app.route('/send-email', methods=['POST'])
+@login_required
+def send_email():
+    """Send a single email using configured SMTP server"""
+    try:
+        from .email_service import EmailService
+        
+        # Get form data
+        recipient = request.form.get('recipient')
+        subject = request.form.get('subject')
+        content = request.form.get('content')
+        config_id = request.form.get('smtp_config_id')
+        
+        # Validate input
+        if not all([recipient, subject, content]):
+            flash('Missing required fields', 'danger')
+            return redirect(request.referrer or url_for('email_settings'))
+        
+        # Get SMTP config (use default if not specified)
+        if config_id:
+            smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
+        else:
+            smtp_config = SMTPConfig.query.filter_by(user_id=current_user.id, is_default=True).first()
+        
+        if not smtp_config:
+            flash('No SMTP configuration available', 'danger')
+            return redirect(url_for('email_settings'))
+        
+        # Send email
+        success, message = EmailService.send_email(
+            recipient_email=recipient,
+            subject=subject,
+            html_content=content,
+            smtp_config=smtp_config.to_smtp_config()
+        )
+        
+        # Record in email history
+        email_history = EmailHistory(
+            user_id=current_user.id,
+            recipient=recipient,
+            subject=subject,
+            status='sent' if success else 'failed',
+            error_message=None if success else message
+        )
+        
+        db.session.add(email_history)
+        db.session.commit()
+        
+        if success:
+            flash('Email sent successfully', 'success')
+        else:
+            flash(f'Failed to send email: {message}', 'danger')
+            
+    except Exception as e:
+        flash(f'Error sending email: {str(e)}', 'danger')
+    
+    return redirect(request.referrer or url_for('email_settings'))
 
 # Create error templates directory if it doesn't exist
 @app.before_first_request

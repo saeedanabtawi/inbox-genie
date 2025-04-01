@@ -15,6 +15,7 @@
         border-radius: 10px;
         padding: 25px;
         box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        margin-bottom: 1.5rem;
     }
     .csv-input {
         height: 150px;
@@ -35,6 +36,28 @@
         position: absolute;
         top: 10px;
         right: 10px;
+    }
+    .email-actions {
+        display: flex;
+        justify-content: flex-end;
+        gap: 0.5rem;
+        margin-top: 1rem;
+    }
+    .history-table {
+        font-size: 0.9rem;
+    }
+    .history-badge {
+        font-size: 0.7rem;
+        padding: 0.25rem 0.5rem;
+    }
+    .nav-tabs .nav-link {
+        color: #6c757d;
+        font-weight: 500;
+    }
+    .nav-tabs .nav-link.active {
+        color: #6f42c1;
+        font-weight: 600;
+        border-bottom: 2px solid #6f42c1;
     }
 </style>
 {% endblock %}
@@ -90,45 +113,147 @@
         </div>
         
         <div class="col-lg-6">
-            <div class="results-section mb-4">
-                <h3 class="mb-4">Generated Emails</h3>
-                
-                <!-- Processing indicator -->
-                <div id="processingIndicator" class="text-center py-5 d-none">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Processing...</span>
-                    </div>
-                    <p class="mt-3">Processing your CSV data and generating personalized emails...</p>
-                </div>
-                
-                <!-- Results container -->
-                <div id="resultsContainer" style="display:none;">
-                    <div class="alert alert-success mb-4">
-                        <div class="d-flex align-items-center">
-                            <div>
-                                <h5 class="alert-heading"><i class="bi bi-check-circle-fill me-2"></i>Processing Complete</h5>
-                                <p id="processingStats" class="mb-0">Successfully generated <span id="successCount">0</span> emails from <span id="totalCount">0</span> recipients.</p>
+            <ul class="nav nav-tabs mb-3" id="resultsTab" role="tablist">
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link active" id="generated-tab" data-bs-toggle="tab" data-bs-target="#generated" type="button" role="tab" aria-controls="generated" aria-selected="true">
+                        <i class="bi bi-envelope me-1"></i> Generated Emails
+                    </button>
+                </li>
+                <li class="nav-item" role="presentation">
+                    <button class="nav-link" id="history-tab" data-bs-toggle="tab" data-bs-target="#history" type="button" role="tab" aria-controls="history" aria-selected="false">
+                        <i class="bi bi-clock-history me-1"></i> Email History
+                    </button>
+                </li>
+            </ul>
+            
+            <div class="tab-content" id="resultsTabContent">
+                <div class="tab-pane fade show active" id="generated" role="tabpanel" aria-labelledby="generated-tab">
+                    <div class="results-section">
+                        <h3 class="mb-4">Generated Emails</h3>
+                        
+                        <!-- Processing indicator -->
+                        <div id="processingIndicator" class="text-center py-5 d-none">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Processing...</span>
                             </div>
-                            <button id="downloadAllBtn" class="btn btn-outline-success ms-auto">
-                                <i class="bi bi-download me-2"></i>Download All
-                            </button>
+                            <p class="mt-3">Processing your CSV data and generating personalized emails...</p>
+                        </div>
+                        
+                        <!-- Results container -->
+                        <div id="resultsContainer" style="display:none;">
+                            <div class="alert alert-success mb-4">
+                                <div class="d-flex align-items-center">
+                                    <div>
+                                        <h5 class="alert-heading"><i class="bi bi-check-circle-fill me-2"></i>Processing Complete</h5>
+                                        <p id="processingStats" class="mb-0">Successfully generated <span id="successCount">0</span> emails from <span id="totalCount">0</span> recipients.</p>
+                                    </div>
+                                    <div class="ms-auto">
+                                        <div class="btn-group">
+                                            <button id="downloadAllBtn" class="btn btn-outline-success">
+                                                <i class="bi bi-download me-1"></i>Download
+                                            </button>
+                                            <button id="sendAllBtn" class="btn btn-primary">
+                                                <i class="bi bi-send me-1"></i>Send All
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Errors alert (if any) -->
+                            <div id="errorsAlert" class="alert alert-warning mb-4" style="display:none;">
+                                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Some Entries Had Issues</h5>
+                                <ul id="errorsList" class="mb-0"></ul>
+                            </div>
+                            
+                            <!-- SMTP Configuration Selector (only shown when user has SMTP configs) -->
+                            <div id="smtpConfigSection" {% if not smtp_configs %}style="display:none;"{% endif %} class="mb-4">
+                                <div class="card">
+                                    <div class="card-header bg-light">
+                                        <h5 class="mb-0">Email Delivery Settings</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="smtpConfigSelect" class="form-label">Select SMTP Server</label>
+                                            <select class="form-select" id="smtpConfigSelect">
+                                                {% for config in smtp_configs %}
+                                                <option value="{{ config.id }}" {% if config.is_default %}selected{% endif %}>{{ config.name }} ({{ config.email }})</option>
+                                                {% endfor %}
+                                            </select>
+                                        </div>
+                                        {% if not smtp_configs %}
+                                        <div class="alert alert-info mb-0">
+                                            <p class="mb-0">You need to <a href="{{ url_for('email_settings') }}">configure an SMTP server</a> to send emails directly.</p>
+                                        </div>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Email accordions -->
+                            <div class="accordion" id="emailAccordion"></div>
+                        </div>
+                        
+                        <!-- Instructions -->
+                        <div id="instructionsContainer" class="text-center py-4">
+                            <i class="bi bi-arrow-left-circle display-1 text-muted"></i>
+                            <p class="mt-3 lead">Paste your CSV data and click "Generate Bulk Emails" to create personalized emails for all recipients.</p>
                         </div>
                     </div>
-                    
-                    <!-- Errors alert (if any) -->
-                    <div id="errorsAlert" class="alert alert-warning mb-4" style="display:none;">
-                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle-fill me-2"></i>Some Entries Had Issues</h5>
-                        <ul id="errorsList" class="mb-0"></ul>
-                    </div>
-                    
-                    <!-- Email accordions -->
-                    <div class="accordion" id="emailAccordion"></div>
                 </div>
                 
-                <!-- Instructions -->
-                <div id="instructionsContainer" class="text-center py-4">
-                    <i class="bi bi-arrow-left-circle display-1 text-muted"></i>
-                    <p class="mt-3 lead">Paste your CSV data and click "Generate Bulk Emails" to create personalized emails for all recipients.</p>
+                <div class="tab-pane fade" id="history" role="tabpanel" aria-labelledby="history-tab">
+                    <div class="results-section">
+                        <h3 class="mb-4">Email History</h3>
+                        
+                        {% if email_history %}
+                            <div class="table-responsive">
+                                <table class="table table-striped history-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Recipient</th>
+                                            <th>Subject</th>
+                                            <th>Date</th>
+                                            <th>Status</th>
+                                            <th>Analytics</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for email in email_history %}
+                                            <tr>
+                                                <td>{{ email.recipient }}</td>
+                                                <td>{{ email.subject }}</td>
+                                                <td>{{ email.sent_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                                                <td>
+                                                    {% if email.status == 'sent' %}
+                                                        <span class="badge bg-success history-badge">Sent</span>
+                                                    {% elif email.status == 'failed' %}
+                                                        <span class="badge bg-danger history-badge" title="{{ email.error_message }}">Failed</span>
+                                                    {% else %}
+                                                        <span class="badge bg-secondary history-badge">{{ email.status }}</span>
+                                                    {% endif %}
+                                                </td>
+                                                <td>
+                                                    <div class="d-flex gap-2">
+                                                        <span class="badge {% if email.opened %}bg-success{% else %}bg-secondary{% endif %} history-badge" title="{% if email.opened %}Opened at {{ email.opened_at.strftime('%Y-%m-%d %H:%M') }}{% else %}Not opened yet{% endif %}">
+                                                            <i class="bi bi-envelope-open"></i> {{ 'Opened' if email.opened else 'Not Opened' }}
+                                                        </span>
+                                                        <span class="badge {% if email.clicked %}bg-success{% else %}bg-secondary{% endif %} history-badge" title="{% if email.clicked %}Clicked at {{ email.clicked_at.strftime('%Y-%m-%d %H:%M') }}{% else %}No clicks yet{% endif %}">
+                                                            <i class="bi bi-link-45deg"></i> {{ 'Clicked' if email.clicked else 'No Clicks' }}
+                                                        </span>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% else %}
+                            <div class="alert alert-info">
+                                <p class="mb-0">No email history found. Sent emails will appear here.</p>
+                            </div>
+                        {% endif %}
+                    </div>
                 </div>
             </div>
         </div>
@@ -246,6 +371,7 @@
                 
                 // Clear previous results
                 emailAccordion.innerHTML = '';
+                errorsAlert.style.display = 'none';
                 errorsList.innerHTML = '';
                 
                 // Display errors if any
@@ -288,6 +414,14 @@
                             '<i class="bi bi-clipboard"></i> Copy' +
                             '</button>' +
                             '<div class="email-preview">' + email.replace(/\n/g, '<br>') + '</div>' +
+                            '<div class="email-actions">' +
+                            '<button class="btn btn-sm btn-outline-secondary copy-single-btn" data-email-index="' + index + '">' +
+                            '<i class="bi bi-clipboard me-1"></i>Copy' +
+                            '</button>' +
+                            '<button class="btn btn-sm btn-primary send-single-btn" data-email-index="' + index + '" data-recipient="' + recipient.email + '">' +
+                            '<i class="bi bi-send me-1"></i>Send' +
+                            '</button>' +
+                            '</div>' +
                             '</div>' +
                             '</div>';
                         
@@ -315,6 +449,89 @@
                         });
                     });
                     
+                    // Add copy button functionality
+                    document.querySelectorAll('.copy-single-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            const emailIndex = this.getAttribute('data-email-index');
+                            const emailContent = data.emails[emailIndex].email;
+                            
+                            navigator.clipboard.writeText(emailContent)
+                                .then(() => {
+                                    this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Copied!';
+                                    setTimeout(() => {
+                                        this.innerHTML = '<i class="bi bi-clipboard me-1"></i>Copy';
+                                    }, 2000);
+                                })
+                                .catch(err => {
+                                    console.error('Error copying text: ', err);
+                                });
+                        });
+                    });
+                    
+                    // Add send button functionality
+                    document.querySelectorAll('.send-single-btn').forEach(button => {
+                        button.addEventListener('click', function() {
+                            // Check if SMTP is configured
+                            const smtpConfigSelect = document.getElementById('smtpConfigSelect');
+                            if (!smtpConfigSelect || smtpConfigSelect.options.length === 0) {
+                                alert('Please configure an SMTP server in Email Settings before sending emails.');
+                                return;
+                            }
+                            
+                            const emailIndex = this.getAttribute('data-email-index');
+                            const recipient = this.getAttribute('data-recipient');
+                            
+                            if (!recipient) {
+                                alert('Missing recipient email address.');
+                                return;
+                            }
+                            
+                            if (!confirm(`Are you sure you want to send this email to ${recipient}?`)) {
+                                return;
+                            }
+                            
+                            // Disable button and show sending state
+                            this.disabled = true;
+                            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>';
+                            
+                            // Prepare data for sending
+                            const emailData = {
+                                recipient: recipient,
+                                subject: data.emails[emailIndex].subject,
+                                content: data.emails[emailIndex].email,
+                                smtp_config_id: smtpConfigSelect.value
+                            };
+                            
+                            // Send the request
+                            fetch('/send-email', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                },
+                                body: JSON.stringify(emailData)
+                            })
+                            .then(response => response.json())
+                            .then(data => {
+                                this.disabled = false;
+                                this.innerHTML = '<i class="bi bi-send me-1"></i>Send';
+                                
+                                if (data.success) {
+                                    this.innerHTML = '<i class="bi bi-check-circle me-1"></i>Sent!';
+                                    setTimeout(() => {
+                                        this.innerHTML = '<i class="bi bi-send me-1"></i>Send';
+                                    }, 2000);
+                                } else {
+                                    alert(`Error: ${data.message}`);
+                                }
+                            })
+                            .catch(error => {
+                                this.disabled = false;
+                                this.innerHTML = '<i class="bi bi-send me-1"></i>Send';
+                                alert('Error sending email: ' + error);
+                            });
+                        });
+                    });
+                    
                     // Add download all functionality
                     downloadAllBtn.addEventListener('click', function() {
                         let allEmails = '';
@@ -333,6 +550,72 @@
                         a.click();
                         document.body.removeChild(a);
                         URL.revokeObjectURL(url);
+                    });
+                    
+                    // Store generated emails
+                    let generatedEmails = data.emails.map(email => ({
+                        recipient: email.recipient.email,
+                        subject: email.subject || `Personalized email for ${email.recipient.name}`,
+                        content: email.email
+                    }));
+                    
+                    // Handle sending all emails
+                    document.getElementById('sendAllBtn').addEventListener('click', function() {
+                        // Check if SMTP is configured
+                        const smtpConfigSelect = document.getElementById('smtpConfigSelect');
+                        if (!smtpConfigSelect || smtpConfigSelect.options.length === 0) {
+                            alert('Please configure an SMTP server in Email Settings before sending emails.');
+                            return;
+                        }
+
+                        const configId = smtpConfigSelect.value;
+                        const emails = generatedEmails;
+                        
+                        if (emails.length === 0) {
+                            alert('No emails to send.');
+                            return;
+                        }
+                        
+                        if (!confirm(`Are you sure you want to send ${emails.length} emails?`)) {
+                            return;
+                        }
+                        
+                        // Disable button and show sending state
+                        this.disabled = true;
+                        this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Sending...';
+                        
+                        // Prepare data for sending
+                        const emailData = {
+                            emails: emails,
+                            smtp_config_id: configId
+                        };
+                        
+                        // Send the request
+                        fetch('/send-bulk-emails', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                            },
+                            body: JSON.stringify(emailData)
+                        })
+                        .then(response => response.json())
+                        .then(data => {
+                            this.disabled = false;
+                            this.innerHTML = '<i class="bi bi-send me-1"></i>Send All';
+                            
+                            if (data.success) {
+                                alert(`Successfully sent ${data.sent} emails.`);
+                                // Switch to history tab to show results
+                                document.getElementById('history-tab').click();
+                            } else {
+                                alert(`Error: ${data.error}`);
+                            }
+                        })
+                        .catch(error => {
+                            this.disabled = false;
+                            this.innerHTML = '<i class="bi bi-send me-1"></i>Send All';
+                            alert('Error sending emails: ' + error);
+                        });
                     });
                 }
                 
