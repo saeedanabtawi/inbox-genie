@@ -4,19 +4,31 @@
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary-color: #4F46E5;
+        --secondary-color: #8B5CF6;
+        --accent-color: #C084FC;
+        --light-bg: #F9FAFB;
+        --dark-text: #111827;
+        --gray-text: #6B7280;
+        --lighter-gray: #F3F4F6;
+    }
+    
     .pricing-header {
-        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-        color: white;
-        padding: 4rem 0;
-        border-radius: 0 0 20px 20px;
-        margin-bottom: 2rem;
+        background: linear-gradient(to right, #F9FAFB, #F3F4F6);
+        color: var(--dark-text);
+        padding: 6rem 0 4rem;
+        margin-bottom: 3rem;
+        border-bottom: 1px solid rgba(0,0,0,0.05);
     }
     
     .pricing-card {
-        border-radius: 10px;
+        border-radius: 12px;
         overflow: hidden;
         transition: transform 0.3s, box-shadow 0.3s;
         height: 100%;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.04);
+        border: 1px solid #EEEEEE;
     }
     
     .pricing-card:hover {
@@ -25,10 +37,10 @@
     }
     
     .pricing-card.popular {
-        border: 2px solid #2575fc;
+        border: 2px solid var(--primary-color);
         transform: scale(1.05);
         z-index: 1;
-        box-shadow: 0 10px 30px rgba(37, 117, 252, 0.2);
+        box-shadow: 0 10px 30px rgba(79, 70, 229, 0.2);
     }
     
     .pricing-card.popular:hover {
@@ -48,7 +60,7 @@
     
     .pricing-unit {
         font-size: 1rem;
-        color: #6c757d;
+        color: var(--gray-text);
     }
     
     .popular-badge {
@@ -56,6 +68,12 @@
         top: 10px;
         right: 10px;
         z-index: 2;
+        background-color: var(--primary-color);
+        color: white;
+        padding: 0.3rem 0.6rem;
+        font-size: 0.75rem;
+        border-radius: 20px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
     }
     
     .feature-item {
@@ -71,7 +89,7 @@
     }
     
     .feature-available i {
-        color: #28a745;
+        color: var(--primary-color);
     }
     
     .feature-unavailable {
@@ -96,96 +114,6 @@
         font-weight: 500;
     }
     
-    .pricing-calculator {
-        background: linear-gradient(135deg, rgba(106, 17, 203, 0.05) 0%, rgba(37, 117, 252, 0.05) 100%);
-        border-radius: 15px;
-        padding: 3rem;
-        margin-top: 4rem;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
-        border: 1px solid rgba(37, 117, 252, 0.1);
-    }
-    
-    .calculator-result {
-        background-color: white;
-        border-radius: 15px;
-        padding: 2rem;
-        margin-top: 1.5rem;
-        box-shadow: 0 10px 30px rgba(37, 117, 252, 0.1);
-        border: 1px solid rgba(37, 117, 252, 0.2);
-        transition: all 0.3s ease;
-    }
-    
-    .form-range {
-        height: 6px;
-        border-radius: 3px;
-    }
-    
-    .form-range::-webkit-slider-thumb {
-        background: #2575fc;
-        box-shadow: 0 0 10px rgba(37, 117, 252, 0.5);
-    }
-    
-    .form-range::-moz-range-thumb {
-        background: #2575fc;
-        box-shadow: 0 0 10px rgba(37, 117, 252, 0.5);
-    }
-    
-    .calculator-feature-item {
-        border-radius: 8px;
-        padding: 10px 15px;
-        margin-bottom: 8px;
-        transition: background-color 0.2s;
-        border: 1px solid rgba(0, 0, 0, 0.05);
-    }
-    
-    .calculator-feature-item:hover {
-        background-color: rgba(37, 117, 252, 0.05);
-    }
-    
-    .calculator-price {
-        font-size: 3rem;
-        font-weight: 700;
-        color: #2575fc;
-        text-shadow: 0px 2px 4px rgba(37, 117, 252, 0.2);
-    }
-    
-    .volume-labels {
-        display: flex;
-        justify-content: space-between;
-        margin-top: 8px;
-        color: #6c757d;
-        font-weight: 500;
-    }
-    
-    .volume-value {
-        font-size: 1.2rem;
-        font-weight: 600;
-        color: #2575fc;
-        text-align: center;
-        margin: 8px 0;
-    }
-    
-    .billing-options {
-        display: flex;
-        justify-content: center;
-        gap: 20px;
-        margin-bottom: 20px;
-    }
-    
-    .billing-option {
-        cursor: pointer;
-        padding: 10px 20px;
-        border-radius: 10px;
-        border: 1px solid #dee2e6;
-        transition: all 0.2s;
-    }
-    
-    .billing-option.active {
-        background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
-        color: white;
-        border-color: transparent;
-    }
-    
     .faq-section {
         margin-top: 4rem;
     }
@@ -200,270 +128,175 @@
     .compare-plans-btn {
         margin-top: 2.5rem;
     }
+    
+    /* Custom purple button styles */
+    .btn-purple {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        color: white;
+    }
+    
+    .btn-purple:hover, .btn-purple:focus {
+        background-color: var(--secondary-color);
+        border-color: var(--secondary-color);
+        color: white;
+    }
+    
+    .btn-outline-purple {
+        color: var(--primary-color);
+        border-color: var(--primary-color);
+        background-color: transparent;
+    }
+    
+    .btn-outline-purple:hover, .btn-outline-purple:focus {
+        background-color: var(--primary-color);
+        color: white;
+    }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="pricing-header">
     <div class="container text-center">
-        <h1 class="display-4 fw-bold mb-4">Choose the Right Plan for Your Needs</h1>
-        <p class="lead mb-4">Start with our Free tier and upgrade as your business grows</p>
+        <h1 class="display-4 fw-bold mb-3">Choose the Right Plan for Your Needs</h1>
+        <p class="lead mb-5">Simple, transparent pricing to help grow your business</p>
         
-        <div class="pricing-toggle">
-            <span class="toggle-label">Monthly</span>
-            <div class="form-check form-switch">
+        <div class="d-flex justify-content-center align-items-center mb-3">
+            <span class="me-3 fw-medium">Monthly</span>
+            <div class="form-check form-switch d-inline-block">
                 <input class="form-check-input" type="checkbox" id="billingToggle">
             </div>
-            <span class="toggle-label">Annual <span class="badge bg-success">Save 20%</span></span>
+            <span class="ms-3 fw-medium">Annual <span class="badge bg-success ms-2">Save 20%</span></span>
         </div>
     </div>
 </div>
 
 <div class="container">
     <!-- Pricing Tiers -->
-    <div class="row mb-5">
-        <!-- Free Tier -->
-        <div class="col-md-6 col-lg-3 mb-4">
-            <div class="card pricing-card h-100">
-                <div class="card-header bg-light">
-                    <h4 class="my-0 fw-normal">Free</h4>
-                </div>
-                <div class="card-body d-flex flex-column">
-                    <div class="pricing-price">$0<span class="pricing-unit">/mo</span></div>
-                    <p class="text-muted mb-4">Perfect for trying out InboxGenie</p>
-                    
-                    <ul class="list-unstyled mt-3 mb-4">
-                        <li class="feature-item feature-available">
-                            <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Single email personalization</span>
-                        </li>
-                        <li class="feature-item feature-available">
-                            <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Basic templates</span>
-                        </li>
-                        <li class="feature-item feature-available">
-                            <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Email preview</span>
-                        </li>
-                        <li class="feature-item feature-unavailable">
-                            <span class="feature-icon"><i class="bi bi-x-circle"></i></span>
-                            <span>Bulk email generation</span>
-                        </li>
-                        <li class="feature-item feature-unavailable">
-                            <span class="feature-icon"><i class="bi bi-x-circle"></i></span>
-                            <span>Custom templates</span>
-                        </li>
-                        <li class="feature-item feature-unavailable">
-                            <span class="feature-icon"><i class="bi bi-x-circle"></i></span>
-                            <span>Advanced analytics</span>
-                        </li>
-                    </ul>
-                    
-                    <button type="button" class="btn btn-outline-primary mt-auto pricing-cta">Get Started</button>
-                </div>
-            </div>
-        </div>
-        
+    <div class="row mb-5 justify-content-center">
         <!-- Basic Tier -->
-        <div class="col-md-6 col-lg-3 mb-4">
+        <div class="col-md-4 col-lg-4 mb-4">
             <div class="card pricing-card h-100">
-                <div class="card-header bg-light">
-                    <h4 class="my-0 fw-normal">Basic</h4>
+                <div class="card-header border-0 bg-white pt-4 pb-0">
+                    <h4 class="fw-semibold">Basic</h4>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <div class="pricing-price">$19<span class="pricing-unit">/mo</span></div>
+                    <div class="pricing-price mb-2">$19<span class="pricing-unit">/mo</span></div>
                     <p class="text-muted mb-4">For small businesses and startups</p>
                     
                     <ul class="list-unstyled mt-3 mb-4">
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>Single email personalization</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>Up to 100 bulk emails/month</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>All templates</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>Basic analytics</span>
                         </li>
-                        <li class="feature-item feature-unavailable">
+                        <li class="feature-item feature-unavailable mb-3">
                             <span class="feature-icon"><i class="bi bi-x-circle"></i></span>
                             <span>Custom templates</span>
                         </li>
-                        <li class="feature-item feature-unavailable">
+                        <li class="feature-item feature-unavailable mb-3">
                             <span class="feature-icon"><i class="bi bi-x-circle"></i></span>
                             <span>Priority support</span>
                         </li>
                     </ul>
                     
-                    <button type="button" class="btn btn-primary mt-auto pricing-cta">Subscribe</button>
+                    <button type="button" class="btn btn-purple mt-auto pricing-cta">Subscribe</button>
                 </div>
             </div>
         </div>
         
         <!-- Professional Tier -->
-        <div class="col-md-6 col-lg-3 mb-4">
+        <div class="col-md-4 col-lg-4 mb-4">
             <div class="card pricing-card popular h-100">
-                <span class="badge bg-primary popular-badge">Most Popular</span>
-                <div class="card-header bg-primary text-white">
-                    <h4 class="my-0 fw-normal">Professional</h4>
+                <div class="popular-badge">Most Popular</div>
+                <div class="card-header border-0 bg-white pt-4 pb-0">
+                    <h4 class="fw-semibold">Professional</h4>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <div class="pricing-price">$49<span class="pricing-unit">/mo</span></div>
+                    <div class="pricing-price mb-2">$49<span class="pricing-unit">/mo</span></div>
                     <p class="text-muted mb-4">For growing teams and businesses</p>
                     
                     <ul class="list-unstyled mt-3 mb-4">
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Single email personalization</span>
+                            <span>Everything in Basic</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>Up to 1,000 bulk emails/month</span>
                         </li>
-                        <li class="feature-item feature-available">
-                            <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Advanced templates</span>
-                        </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>Custom templates</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
                             <span>Advanced analytics</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Email scheduling</span>
+                            <span>Priority support</span>
+                        </li>
+                        <li class="feature-item feature-unavailable mb-3">
+                            <span class="feature-icon"><i class="bi bi-x-circle"></i></span>
+                            <span>Unlimited emails</span>
                         </li>
                     </ul>
                     
-                    <button type="button" class="btn btn-primary mt-auto pricing-cta">Subscribe</button>
+                    <a href="{{ url_for('register_page') }}" class="btn btn-purple btn-lg mt-auto">Get Started</a>
                 </div>
             </div>
         </div>
         
         <!-- Enterprise Tier -->
-        <div class="col-md-6 col-lg-3 mb-4">
+        <div class="col-md-4 col-lg-4 mb-4">
             <div class="card pricing-card h-100">
-                <div class="card-header bg-light">
-                    <h4 class="my-0 fw-normal">Enterprise</h4>
+                <div class="card-header border-0 bg-white pt-4 pb-0">
+                    <h4 class="fw-semibold">Enterprise</h4>
                 </div>
                 <div class="card-body d-flex flex-column">
-                    <div class="pricing-price">$99<span class="pricing-unit">/mo</span></div>
-                    <p class="text-muted mb-4">For large-scale campaigns and teams</p>
+                    <div class="pricing-price mb-2">$99<span class="pricing-unit">/mo</span></div>
+                    <p class="text-muted mb-4">For larger organizations with high volume</p>
                     
                     <ul class="list-unstyled mt-3 mb-4">
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Unlimited email personalization</span>
+                            <span>Everything in Professional</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Unlimited bulk emails</span>
+                            <span>Unlimited emails</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>All templates + priority access</span>
+                            <span>White-label options</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Premium analytics</span>
+                            <span>Dedicated account manager</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Advanced customization</span>
+                            <span>API access</span>
                         </li>
-                        <li class="feature-item feature-available">
+                        <li class="feature-item feature-available mb-3">
                             <span class="feature-icon"><i class="bi bi-check-circle-fill"></i></span>
-                            <span>Priority support 24/7</span>
+                            <span>Custom integrations</span>
                         </li>
                     </ul>
                     
-                    <button type="button" class="btn btn-outline-primary mt-auto pricing-cta">Contact Sales</button>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Pricing Calculator -->
-    <div class="pricing-calculator">
-        <h3 class="text-center mb-4">Estimate Your Cost</h3>
-        <div class="row">
-            <div class="col-md-8 offset-md-2">
-                <form id="calculatorForm">
-                    <div class="mb-4">
-                        <label for="emailVolume" class="form-label fw-bold">How many emails do you plan to send per month?</label>
-                        <div class="volume-value" id="emailVolumeValue">1010</div>
-                        <input type="range" class="form-range" min="10" max="2000" step="10" id="emailVolume">
-                        <div class="volume-labels">
-                            <span>10</span>
-                            <span>1010</span>
-                            <span>2000+</span>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">What features do you need?</label>
-                        <div class="calculator-feature-item">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="featureCustomTemplates">
-                                <label class="form-check-label" for="featureCustomTemplates">
-                                    <strong>Custom Templates</strong> - Create and save your own email templates
-                                </label>
-                            </div>
-                        </div>
-                        <div class="calculator-feature-item">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="featureAdvancedAnalytics">
-                                <label class="form-check-label" for="featureAdvancedAnalytics">
-                                    <strong>Advanced Analytics</strong> - Track performance metrics for your email campaigns
-                                </label>
-                            </div>
-                        </div>
-                        <div class="calculator-feature-item">
-                            <div class="form-check">
-                                <input class="form-check-input" type="checkbox" id="featurePrioritySupport">
-                                <label class="form-check-label" for="featurePrioritySupport">
-                                    <strong>Priority Support</strong> - Get faster responses from our dedicated support team
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="mb-4">
-                        <label class="form-label fw-bold">Billing Cycle</label>
-                        <div class="billing-options">
-                            <div class="billing-option active" id="optionMonthly">
-                                <input class="form-check-input" type="radio" name="billingCycle" id="billingMonthly" checked hidden>
-                                <label class="form-check-label" for="billingMonthly">
-                                    Monthly
-                                </label>
-                            </div>
-                            <div class="billing-option" id="optionAnnual">
-                                <input class="form-check-input" type="radio" name="billingCycle" id="billingAnnual" hidden>
-                                <label class="form-check-label" for="billingAnnual">
-                                    Annual <span class="badge bg-success">Save 20%</span>
-                                </label>
-                            </div>
-                        </div>
-                    </div>
-                </form>
-                
-                <div class="calculator-result">
-                    <div class="text-center">
-                        <h5 class="mb-3">Recommended Plan</h5>
-                        <h3 id="recommendedPlan" class="mb-3">Enterprise</h3>
-                        <div class="calculator-price mb-3" id="estimatedCost">$99<span class="pricing-unit">/mo</span></div>
-                        <p class="text-muted mb-4" id="costDescription">Perfect for your estimated usage of 1010 emails/month</p>
-                        <button class="btn btn-primary btn-lg px-5">Get Started</button>
-                    </div>
+                    <a href="mailto:sales@inboxgenie.com" class="btn btn-outline-purple btn-lg mt-auto">Contact Sales</a>
                 </div>
             </div>
         </div>
@@ -484,7 +317,7 @@
                         </h2>
                         <div id="collapseOne" class="accordion-collapse collapse" aria-labelledby="headingOne" data-bs-parent="#accordionFaq1">
                             <div class="accordion-body">
-                                Yes! Our Free tier allows you to personalize single emails without any commitment. You can experience the quality of our AI personalization before deciding to upgrade to a paid plan for bulk functionality.
+                                Yes! Our Basic tier allows you to personalize single emails without any commitment. You can experience the quality of our AI personalization before deciding to upgrade to a paid plan for bulk functionality.
                             </div>
                         </div>
                     </div>
@@ -561,131 +394,45 @@
             </div>
         </div>
     </div>
-    
-    <!-- CTA Section -->
-    <div class="text-center mt-5 mb-5">
-        <h2>Ready to get started?</h2>
-        <p class="lead mb-4">Choose the plan that's right for you and start personalizing emails today</p>
-        <a href="#" class="btn btn-lg btn-primary">Sign Up Now</a>
-        <div class="mt-3">
-            <small class="text-muted">Have questions? <a href="#">Contact our sales team</a></small>
-        </div>
-    </div>
 </div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Billing toggle for the pricing cards
+        // Pricing elements
         const billingToggle = document.getElementById('billingToggle');
-        const monthlyPrices = document.querySelectorAll('.monthly-price');
-        const annualPrices = document.querySelectorAll('.annual-price');
         
+        // Get all pricing elements that need to be updated
+        const basicPriceEl = document.querySelector('.col-md-4:nth-child(1) .pricing-price');
+        const proPriceEl = document.querySelector('.col-md-4:nth-child(2) .pricing-price');
+        const enterprisePriceEl = document.querySelector('.col-md-4:nth-child(3) .pricing-price');
+        
+        // Store the original monthly prices
+        const prices = {
+            basic: { monthly: 19, annual: 15 },
+            pro: { monthly: 49, annual: 39 },
+            enterprise: { monthly: 99, annual: 79 }
+        };
+        
+        // Toggle between monthly and annual billing
         billingToggle.addEventListener('change', function() {
-            if (this.checked) {
-                monthlyPrices.forEach(el => el.classList.add('d-none'));
-                annualPrices.forEach(el => el.classList.remove('d-none'));
+            const isAnnual = this.checked;
+            updatePrices(isAnnual);
+        });
+        
+        function updatePrices(isAnnual) {
+            // Apply discount to all pricing cards
+            if (isAnnual) {
+                basicPriceEl.innerHTML = '$' + prices.basic.annual + '<span class="pricing-unit">/mo</span>';
+                proPriceEl.innerHTML = '$' + prices.pro.annual + '<span class="pricing-unit">/mo</span>';
+                enterprisePriceEl.innerHTML = '$' + prices.enterprise.annual + '<span class="pricing-unit">/mo</span>';
             } else {
-                annualPrices.forEach(el => el.classList.add('d-none'));
-                monthlyPrices.forEach(el => el.classList.remove('d-none'));
+                basicPriceEl.innerHTML = '$' + prices.basic.monthly + '<span class="pricing-unit">/mo</span>';
+                proPriceEl.innerHTML = '$' + prices.pro.monthly + '<span class="pricing-unit">/mo</span>';
+                enterprisePriceEl.innerHTML = '$' + prices.enterprise.monthly + '<span class="pricing-unit">/mo</span>';
             }
-        });
-        
-        // Pricing calculator
-        const emailVolumeSlider = document.getElementById('emailVolume');
-        const emailVolumeValue = document.getElementById('emailVolumeValue');
-        const featureCustomTemplates = document.getElementById('featureCustomTemplates');
-        const featureAdvancedAnalytics = document.getElementById('featureAdvancedAnalytics');
-        const featurePrioritySupport = document.getElementById('featurePrioritySupport');
-        const billingMonthly = document.getElementById('billingMonthly');
-        const billingAnnual = document.getElementById('billingAnnual');
-        const optionMonthly = document.getElementById('optionMonthly');
-        const optionAnnual = document.getElementById('optionAnnual');
-        const recommendedPlan = document.getElementById('recommendedPlan');
-        const estimatedCost = document.getElementById('estimatedCost');
-        const costDescription = document.getElementById('costDescription');
-        
-        // Billing options click handlers
-        optionMonthly.addEventListener('click', function() {
-            billingMonthly.checked = true;
-            billingAnnual.checked = false;
-            optionMonthly.classList.add('active');
-            optionAnnual.classList.remove('active');
-            updateCalculator();
-        });
-        
-        optionAnnual.addEventListener('click', function() {
-            billingMonthly.checked = false;
-            billingAnnual.checked = true;
-            optionMonthly.classList.remove('active');
-            optionAnnual.classList.add('active');
-            updateCalculator();
-        });
-        
-        // Update email volume value and calculator when slider changes
-        emailVolumeSlider.addEventListener('input', function() {
-            emailVolumeValue.textContent = this.value;
-            updateCalculator();
-        });
-        
-        // Update calculator when checkboxes change
-        featureCustomTemplates.addEventListener('change', updateCalculator);
-        featureAdvancedAnalytics.addEventListener('change', updateCalculator);
-        featurePrioritySupport.addEventListener('change', updateCalculator);
-        
-        function updateCalculator() {
-            const emailVolume = parseInt(emailVolumeSlider.value);
-            const needsCustomTemplates = featureCustomTemplates.checked;
-            const needsAdvancedAnalytics = featureAdvancedAnalytics.checked;
-            const needsPrioritySupport = featurePrioritySupport.checked;
-            const isAnnual = billingAnnual.checked;
-            
-            let plan = 'Free';
-            let cost = 0;
-            let planClass = '';
-            
-            // Determine plan based on volume and features
-            if (emailVolume > 1000 || needsPrioritySupport) {
-                plan = 'Enterprise';
-                cost = isAnnual ? 79 : 99;
-                planClass = 'text-primary';
-            } else if (emailVolume > 100 || needsCustomTemplates || needsAdvancedAnalytics) {
-                plan = 'Professional';
-                cost = isAnnual ? 39 : 49;
-                planClass = 'text-success';
-            } else if (emailVolume > 0) {
-                plan = 'Basic';
-                cost = isAnnual ? 15 : 19;
-                planClass = 'text-info';
-            }
-            
-            // Update UI with animations
-            // First, add a fade-out effect
-            document.querySelector('.calculator-result').style.opacity = 0.7;
-            
-            // After a short delay, update the content and fade back in
-            setTimeout(() => {
-                // Update plan name with appropriate styling
-                recommendedPlan.textContent = plan;
-                recommendedPlan.className = 'mb-3 ' + planClass;
-                
-                // Update cost display
-                if (plan === 'Free') {
-                    estimatedCost.innerHTML = '$0<span class="pricing-unit">/mo</span>';
-                    costDescription.textContent = 'Perfect for single email personalization';
-                } else {
-                    estimatedCost.innerHTML = '$' + cost + '<span class="pricing-unit">' + (isAnnual ? '/mo (billed annually)' : '/mo') + '</span>';
-                    costDescription.textContent = `Perfect for your estimated usage of ${emailVolume} emails/month`;
-                }
-                
-                // Fade back in
-                document.querySelector('.calculator-result').style.opacity = 1;
-            }, 200);
         }
-        
-        // Initialize calculator
-        updateCalculator();
     });
 </script>
 {% endblock %}

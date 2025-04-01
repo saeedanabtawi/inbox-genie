@@ -43,7 +43,7 @@ class User(UserMixin, db.Model):
         return str(self.id)
     
     # Database fields for subscription data
-    subscription_tier = db.Column(db.String(20), default='Free')
+    subscription_tier = db.Column(db.String(20), default='Basic')
     subscription_start_date = db.Column(db.DateTime, nullable=True)
     subscription_end_date = db.Column(db.DateTime, nullable=True)
     is_annual_billing = db.Column(db.Boolean, default=False)
@@ -55,16 +55,15 @@ class User(UserMixin, db.Model):
     def get_monthly_email_limit(self):
         """Get the monthly email limit based on subscription tier"""
         limits = {
-            'Free': 1,
             'Basic': 100,
             'Professional': 1000,
             'Enterprise': float('inf')  # Unlimited
         }
-        return limits.get(self.subscription_tier, 1)
+        return limits.get(self.subscription_tier, 100)
     
     def can_send_bulk_emails(self):
-        """Check if user can send bulk emails (any paid tier)"""
-        return self.subscription_tier != 'Free'
+        """Check if user can send bulk emails (all tiers)"""
+        return True
     
     def can_create_custom_templates(self):
         """Check if user can create custom templates (Professional and Enterprise tiers)"""

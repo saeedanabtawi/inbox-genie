@@ -11,7 +11,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
-    {% block extra_css %}{% endblock %}
+    {% block extra_css %}
     <style>
         :root {
             --primary-color: #4F46E5;
@@ -78,12 +78,9 @@
         }
         
         .navbar-brand {
-            display: flex;
-            align-items: center;
-            font-weight: 600;
+            font-weight: 700;
+            font-size: 20px;
             color: var(--dark-text);
-            letter-spacing: -0.01em;
-            font-size: 18px;
         }
         
         .navbar-brand i {
@@ -100,7 +97,10 @@
             font-size: 16px;
         }
         
-        .navbar-nav .nav-link:hover, 
+        .navbar-nav .nav-link:hover {
+            color: var(--primary-color);
+        }
+        
         .navbar-nav .nav-link.active {
             color: var(--primary-color);
         }
@@ -124,20 +124,41 @@
         
         .btn-get-started {
             background-color: var(--primary-color);
-            color: white;
+            color: white !important;
+            border-radius: 4px;
             font-weight: 500;
-            padding: 0.55rem 1.25rem;
-            border-radius: 8px;
-            transition: all 0.3s ease;
+            padding: 8px 16px;
             border: none;
-            font-size: 16px;
+            transition: all 0.3s ease;
         }
         
-        .btn-get-started:hover {
-            background-color: #4338CA;
-            transform: translateY(-1px);
-            box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
-            color: white;
+        .btn-get-started:hover, 
+        .btn-get-started:focus {
+            background-color: var(--secondary-color);
+            color: white !important;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        
+        .btn-get-started.active {
+            background-color: var(--secondary-color);
+            color: white !important;
+        }
+        
+        /* Login link styling */
+        .navbar-nav .login-link {
+            color: var(--primary-color);
+        }
+        
+        .navbar-nav .login-link:hover {
+            color: var(--secondary-color);
+            text-decoration: underline;
+        }
+        
+        /* Keep login active state consistent with other nav items */
+        .navbar-nav .login-link.active {
+            color: var(--primary-color);
+            text-decoration: none;
         }
         
         .feature-box {
@@ -196,14 +217,49 @@
                 font-size: 16px;
             }
         }
+        
+        :root {
+            --primary-color: #4F46E5;
+            --secondary-color: #8B5CF6;
+            --accent-color: #C084FC;
+            --light-bg: #F9FAFB;
+            --dark-text: #111827;
+            --gray-text: #6B7280;
+            --lighter-gray: #F3F4F6;
+        }
+        
+        /* Custom purple button styles */
+        .btn-purple {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+            color: white;
+        }
+        
+        .btn-purple:hover, .btn-purple:focus {
+            background-color: var(--secondary-color);
+            border-color: var(--secondary-color);
+            color: white;
+        }
+        
+        .btn-outline-purple {
+            color: var(--primary-color);
+            border-color: var(--primary-color);
+            background-color: transparent;
+        }
+        
+        .btn-outline-purple:hover, .btn-outline-purple:focus {
+            background-color: var(--primary-color);
+            color: white;
+        }
     </style>
+    {% endblock %}
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
             <a class="navbar-brand" href="/">
-                <i class="fas fa-envelope-open-text"></i>
+                <i class="fas fa-envelope-open-text" style="color: var(--primary-color);"></i>
                 Inbox Genie
             </a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" 
@@ -214,16 +270,16 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/dashboard' %}active{% endif %}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link {{ 'active' if request.path == '/dashboard' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/bulk' %}active{% endif %}" href="{{ url_for('bulk') }}">Bulk Emails</a>
+                        <a class="nav-link {{ 'active' if request.path == '/bulk' }}" href="{{ url_for('bulk') }}">Bulk Emails</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/templates' %}active{% endif %}" href="{{ url_for('manage_templates') }}">Templates</a>
+                        <a class="nav-link {{ 'active' if request.path == '/templates' }}" href="{{ url_for('manage_templates') }}">Templates</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/email-settings' %}active{% endif %}" href="{{ url_for('email_settings') }}">Email Settings</a>
+                        <a class="nav-link {{ 'active' if request.path == '/email-settings' }}" href="{{ url_for('email_settings') }}">Email Settings</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -239,16 +295,16 @@
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/' %}active{% endif %}" href="{{ url_for('landing') }}">Product</a>
+                        <a class="nav-link {{ 'active' if request.path == '/' or request.path == '/home' }}" href="/">Product</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path == '/pricing' %}active{% endif %}" href="{{ url_for('pricing') }}">Pricing</a>
+                        <a class="nav-link {{ 'active' if request.path == '/pricing' }}" href="{{ url_for('pricing') }}">Pricing</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {% if request.path.startswith('/auth/login') %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
+                        <a class="nav-link {{ 'active' if '/auth/login' in request.path }}" href="{{ url_for('auth.login') }}">Login</a>
                     </li>
                     <li class="nav-item ms-2">
-                        <a class="btn btn-get-started {% if request.path.startswith('/auth/register') %}active{% endif %}" 
+                        <a class="btn btn-get-started {{ 'active' if '/auth/register' in request.path }}" 
                            href="{{ url_for('auth.register') }}">Get started</a>
                     </li>
                     {% endif %}

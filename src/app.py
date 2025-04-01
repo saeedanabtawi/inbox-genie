@@ -374,9 +374,7 @@ def dashboard():
         
         # Calculate usage percentage based on subscription tier limits
         max_emails = 500  # Default for premium
-        if current_user.subscription_tier == 'Free':
-            max_emails = 1
-        elif current_user.subscription_tier == 'Basic':
+        if current_user.subscription_tier == 'Basic':
             max_emails = 100
         elif current_user.subscription_tier == 'Professional':
             max_emails = 1000
@@ -1126,14 +1124,6 @@ def subscription():
     
     # Reuse the plans data from the pricing page
     plans = {
-        "free": {
-            "name": "Free",
-            "price_monthly": 0,
-            "price_annual": 0,
-            "emails_per_month": 1,
-            "features": ["Single email personalization", "Basic templates", "Email preview"],
-            "unavailable": ["Bulk email generation", "Custom templates", "Advanced analytics"]
-        },
         "basic": {
             "name": "Basic",
             "price_monthly": 19,
@@ -1182,7 +1172,6 @@ def upgrade_subscription():
         
         # Maps plan keys to subscription tier names
         plan_tiers = {
-            'free': 'Free',
             'basic': 'Basic',
             'professional': 'Professional',
             'enterprise': 'Enterprise'

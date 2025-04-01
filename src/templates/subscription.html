@@ -241,7 +241,6 @@
                     <h5 class="mb-0">Billing Settings</h5>
                 </div>
                 <div class="card-body">
-                    {% if user.subscription_tier != 'Free' %}
                     <h6 class="mb-3">Payment Method</h6>
                     <div class="billing-card mb-4">
                         <div class="d-flex align-items-center">
@@ -281,13 +280,6 @@
                         United States
                     </address>
                     <button class="btn btn-sm btn-outline-secondary">Edit Address</button>
-                    {% else %}
-                    <div class="alert alert-info">
-                        <h6 class="alert-heading">You're on the Free Plan</h6>
-                        <p class="mb-0">Upgrade to a paid plan to access advanced features like bulk email personalization, custom templates, and analytics.</p>
-                    </div>
-                    <a href="{{ url_for('pricing') }}" class="btn btn-primary">View Plans</a>
-                    {% endif %}
                 </div>
             </div>
         </div>
@@ -298,7 +290,6 @@
                     <h5 class="mb-0">Payment History</h5>
                 </div>
                 <div class="card-body">
-                    {% if user.subscription_tier != 'Free' %}
                     <div class="table-responsive">
                         <table class="table table-hover payment-history-table">
                             <thead>
@@ -335,17 +326,11 @@
                             </tbody>
                         </table>
                     </div>
-                    {% else %}
-                    <div class="alert alert-secondary">
-                        <p class="mb-0">No payment history available for the Free plan.</p>
-                    </div>
-                    {% endif %}
                 </div>
             </div>
         </div>
     </div>
     
-    {% if user.subscription_tier != 'Free' %}
     <div class="change-plan-info">
         <h5>Changing Your Plan</h5>
         <p>When changing your subscription plan:</p>
@@ -356,6 +341,5 @@
         </ul>
         <p class="mb-0"><a href="#">Contact our support team</a> if you have any questions about your subscription.</p>
     </div>
-    {% endif %}
 </div>
 {% endblock %}
