@@ -9,6 +9,7 @@
         transition: transform 0.2s, box-shadow 0.2s;
         border-radius: 0.5rem;
         overflow: hidden;
+        border: none;
     }
     
     .dashboard-card:hover {
@@ -17,13 +18,41 @@
     }
     
     .card-stat {
-        font-size: 2rem;
+        font-size: 2.2rem;
         font-weight: 700;
+        color: #333;
+        line-height: 1;
+        margin-bottom: 0.3rem;
+    }
+    
+    .card-stat.text-primary {
+        color: #0d6efd !important;
     }
     
     .stat-label {
         color: #6c757d;
         font-size: 0.9rem;
+        font-weight: 500;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    
+    .user-avatar {
+        background-color: #0d6efd;
+        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
+        border: 2px solid #fff;
+    }
+    
+    .stat-group {
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        border-left: 1px solid rgba(0,0,0,0.05);
+    }
+    
+    .badge.bg-success {
+        background-color: #10b981 !important;
+        font-weight: 500;
+        padding: 0.4rem 0.8rem;
     }
     
     .recent-activity-item {
@@ -144,36 +173,38 @@
     <div class="row mb-4">
         <div class="col-12">
             <div class="card shadow-sm dashboard-card">
-                <div class="card-body">
-                    <div class="row">
+                <div class="card-body py-4">
+                    <div class="row align-items-center">
                         <div class="col-md-6">
-                            <div class="d-flex align-items-center mb-4">
-                                <div class="user-avatar rounded-circle bg-primary text-white d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; font-size: 24px;">
+                            <div class="d-flex align-items-center">
+                                <div class="user-avatar rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; font-size: 24px;">
                                     {{ current_user.username[0].upper() }}
                                 </div>
                                 <div>
-                                    <h4 class="mb-1">{{ current_user.username }}</h4>
-                                    <span class="badge bg-success">Premium Plan</span>
-                                    <span class="text-muted ms-2">Member since {{ current_user.created_at.strftime('%b %Y') if current_user.created_at else 'Jan 2025' }}</span>
+                                    <h4 class="mb-1 fw-bold">{{ current_user.username }}</h4>
+                                    <div>
+                                        <span class="badge bg-success me-2">{{ current_user.subscription_tier }} Plan</span>
+                                        <span class="text-muted">Member since {{ current_user.created_at.strftime('%b %Y') if current_user.created_at else 'Apr 2025' }}</span>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                         <div class="col-md-6">
-                            <div class="row">
-                                <div class="col-6 col-md-3 text-center">
+                            <div class="row mt-md-0 mt-4">
+                                <div class="col-6 col-md-3 text-center stat-group">
                                     <div class="card-stat text-primary">{{ analytics.user_stats.usage_percentage }}%</div>
                                     <div class="stat-label">Usage</div>
                                 </div>
-                                <div class="col-6 col-md-3 text-center">
+                                <div class="col-6 col-md-3 text-center stat-group">
                                     <div class="card-stat">{{ analytics.user_stats.emails_generated }}</div>
                                     <div class="stat-label">Emails Sent</div>
                                 </div>
-                                <div class="col-6 col-md-3 text-center">
+                                <div class="col-6 col-md-3 text-center stat-group">
                                     <div class="card-stat">{{ analytics.user_stats.bulk_campaigns }}</div>
                                     <div class="stat-label">Campaigns</div>
                                 </div>
-                                <div class="col-6 col-md-3 text-center">
-                                    <div class="card-stat">{{ analytics.user_stats.avg_score }}</div>
+                                <div class="col-6 col-md-3 text-center stat-group">
+                                    <div class="card-stat">{{ "%.1f"|format(analytics.user_stats.avg_score) }}</div>
                                     <div class="stat-label">Avg. Score</div>
                                 </div>
                             </div>

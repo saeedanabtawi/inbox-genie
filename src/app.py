@@ -317,13 +317,46 @@ def home():
 @login_required
 def dashboard():
     """Render the dashboard page with analytics data"""
-    # In a real application, this data would come from a database
+    # Get real user metrics from the database
+    
+    try:
+        # Count emails sent by the current user
+        emails_count = EmailHistory.query.filter_by(user_id=current_user.id).count()
+        
+        # Count unique bulk campaigns
+        campaigns_count = db.session.query(func.count(func.distinct(EmailHistory.campaign_name))).filter(
+            EmailHistory.user_id == current_user.id,
+            EmailHistory.campaign_name.isnot(None)
+        ).scalar() or 0
+        
+        # For now, we'll use a default score since we don't have this attribute yet
+        avg_score = 8.7
+        
+        # Calculate usage percentage based on subscription tier limits
+        max_emails = 500  # Default for premium
+        if current_user.subscription_tier == 'Free':
+            max_emails = 50
+        elif current_user.subscription_tier == 'Professional':
+            max_emails = 250
+        elif current_user.subscription_tier == 'Enterprise':
+            max_emails = 1000
+        
+        usage_percentage = min(round((emails_count / max_emails) * 100), 100) if max_emails > 0 else 0
+    except Exception as e:
+        print(f"Error calculating dashboard metrics: {str(e)}")
+        # Fallback to default values if there's an error
+        emails_count = 0
+        campaigns_count = 0
+        avg_score = 0
+        usage_percentage = 0
+    
+    # Get campaign data (keeping the demo data for now)
     analytics = {
         'user_stats': {
-            'emails_generated': 145,
-            'bulk_campaigns': 12,
-            'avg_score': 8.7,
-            'usage_percentage': 65
+            'emails_generated': emails_count,
+            'bulk_campaigns': campaigns_count,
+            'avg_score': avg_score,
+            'usage_percentage': usage_percentage
         },
         'campaigns': [
             {
@@ -408,6 +441,7 @@ def dashboard():
 def profile():
     """Render the user profile page"""
     # In a real application, you might fetch user statistics from a database
+    
     stats = {
         'emails_generated': 0,
         'bulk_campaigns': 0,
