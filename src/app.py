@@ -1,7 +1,9 @@
 import os
 import csv
 import io
-from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
+import secrets
+import base64
+from flask import Flask, render_template, request, jsonify, redirect, url_for, flash, send_file, make_response
 from flask_login import login_required, current_user, LoginManager
 import secrets
 import datetime as dt
@@ -340,6 +342,54 @@ Looking forward to your response,
             result['errors'].append(f"Error processing CSV: {str(e)}")
             return result
 
+def generate_tracking_token(email_id):
+    """Generate a secure token for email tracking"""
+    token_data = f"{email_id}:{secrets.token_hex(8)}"
+    return base64.urlsafe_b64encode(token_data.encode()).decode()
+
+def decode_tracking_token(token):
+    """Decode the tracking token to extract email_id"""
+    try:
+        decoded = base64.urlsafe_b64decode(token.encode()).decode()
+        email_id = int(decoded.split(':')[0])
+        return email_id
+    except (ValueError, IndexError):
+        return None
+
+@app.route('/track/open/<token>.gif')
+def track_open(token):
+    """Track email opens via a transparent tracking pixel"""
+    email_id = decode_tracking_token(token)
+    
+    if email_id:
+        email = EmailHistory.query.get(email_id)
+        if email and not email.opened:
+            email.opened = True
+            email.opened_at = datetime.utcnow()
+            db.session.commit()
+    
+    # Return a transparent 1x1 pixel GIF
+    transparent_pixel = base64.b64decode('R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7')
+    response = make_response(transparent_pixel)
+    response.headers.set('Content-Type', 'image/gif')
+    response.headers.set('Cache-Control', 'no-cache, no-store, must-revalidate')
+    return response
+
+@app.route('/track/click/<token>')
+def track_click(token):
+    """Track email link clicks"""
+    email_id = decode_tracking_token(token)
+    redirect_url = request.args.get('url', '/')
+    
+    if email_id:
+        email = EmailHistory.query.get(email_id)
+        if email and not email.clicked:
+            email.clicked = True
+            email.clicked_at = datetime.utcnow()
+            db.session.commit()
+    
+    return redirect(redirect_url)
+
 @app.route('/')
 def landing():
     """Render the landing page - public access"""
@@ -357,8 +407,6 @@ def home():
 @login_required
 def dashboard():
     """Render the dashboard page with analytics data"""
-    # Get real user metrics from the database
-    
     try:
         # Count emails sent by the current user
         emails_count = EmailHistory.query.filter_by(user_id=current_user.id).count()
@@ -369,8 +417,62 @@ def dashboard():
             EmailHistory.campaign_name.isnot(None)
         ).scalar() or 0
         
-        # For now, we'll use a default score since we don't have this attribute yet
-        avg_score = 8.7
+        # Calculate open and click rates from real data
+        campaign_stats = []
+        
+        # Get all campaigns for the user
+        campaigns = db.session.query(EmailHistory.campaign_name).filter(
+            EmailHistory.user_id == current_user.id,
+            EmailHistory.campaign_name.isnot(None)
+        ).distinct().all()
+        
+        # Average score placeholders (we'll calculate better metrics later)
+        avg_score = 8.7  
+        
+        # Calculate metrics for each campaign
+        for campaign in campaigns:
+            campaign_name = campaign[0]
+            campaign_emails = EmailHistory.query.filter_by(
+                user_id=current_user.id,
+                campaign_name=campaign_name
+            ).all()
+            
+            total_emails = len(campaign_emails)
+            opened_emails = sum(1 for email in campaign_emails if email.opened)
+            clicked_emails = sum(1 for email in campaign_emails if email.clicked)
+            
+            # Calculate rates
+            open_rate = round((opened_emails / total_emails) * 100) if total_emails > 0 else 0
+            click_rate = round((clicked_emails / total_emails) * 100) if total_emails > 0 else 0
+            reply_rate = round(click_rate * 0.6)  # Placeholder: estimate reply rate from click rate
+            
+            latest_email = max(campaign_emails, key=lambda x: x.sent_at) if campaign_emails else None
+            
+            campaign_stats.append({
+                'name': campaign_name,
+                'type': 'Email Campaign',
+                'emails_sent': total_emails,
+                'date': latest_email.sent_at.strftime('%b %d, %Y') if latest_email else 'Unknown',
+                'open_rate': open_rate,
+                'click_rate': click_rate,
+                'reply_rate': reply_rate,
+                'status': 'Active' if latest_email and (datetime.utcnow() - latest_email.sent_at).days < 7 else 'Completed'
+            })
+        
+        # Add demo data if no campaigns exist
+        if not campaign_stats:
+            campaign_stats = [
+                {
+                    'name': 'No campaigns yet',
+                    'type': 'N/A',
+                    'emails_sent': 0,
+                    'date': datetime.now().strftime('%b %d, %Y'),
+                    'open_rate': 0,
+                    'click_rate': 0,
+                    'reply_rate': 0,
+                    'status': 'N/A'
+                }
+            ]
         
         # Calculate usage percentage based on subscription tier limits
         max_emails = 500  # Default for premium
@@ -389,8 +491,31 @@ def dashboard():
         campaigns_count = 0
         avg_score = 0
         usage_percentage = 0
+        campaign_stats = []
     
-    # Get campaign data (keeping the demo data for now)
+    # Get recent activity
+    recent_activity = []
+    recent_emails = EmailHistory.query.filter_by(user_id=current_user.id).order_by(EmailHistory.sent_at.desc()).limit(5).all()
+    
+    for email in recent_emails:
+        time_diff = datetime.utcnow() - email.sent_at
+        if time_diff.days > 0:
+            time_ago = f"{time_diff.days} days ago"
+        elif time_diff.seconds >= 3600:
+            time_ago = f"{time_diff.seconds // 3600} hours ago"
+        else:
+            time_ago = f"{time_diff.seconds // 60} minutes ago"
+            
+        activity_type = "campaign" if email.campaign_name else "email"
+        activity = {
+            'type': activity_type,
+            'title': f"{'Bulk Email' if email.campaign_name else 'Email'} sent to {email.recipient}",
+            'description': f"Subject: {email.subject}",
+            'time': time_ago
+        }
+        recent_activity.append(activity)
+    
+    # Create the analytics object
     analytics = {
         'user_stats': {
             'emails_generated': emails_count,
@@ -398,80 +523,8 @@ def dashboard():
             'avg_score': avg_score,
             'usage_percentage': usage_percentage
         },
-        'campaigns': [
-            {
-                'name': 'Q2 Outreach',
-                'type': 'Cold Email',
-                'emails_sent': 27,
-                'date': 'Mar 30, 2025',
-                'open_rate': 68,
-                'click_rate': 32,
-                'reply_rate': 18,
-                'status': 'Active'
-            },
-            {
-                'name': 'March Prospects',
-                'type': 'Cold Email',
-                'emails_sent': 42,
-                'date': 'Mar 15, 2025',
-                'open_rate': 76,
-                'click_rate': 29,
-                'reply_rate': 32,
-                'status': 'Completed'
-            },
-            {
-                'name': 'Industry Conference',
-                'type': 'Meeting Request',
-                'emails_sent': 15,
-                'date': 'Mar 10, 2025',
-                'open_rate': 87,
-                'click_rate': 53,
-                'reply_rate': 47,
-                'status': 'Completed'
-            },
-            {
-                'name': 'Q1 Follow-ups',
-                'type': 'Follow-Up',
-                'emails_sent': 31,
-                'date': 'Feb 28, 2025',
-                'open_rate': 72,
-                'click_rate': 41,
-                'reply_rate': 35,
-                'status': 'Completed'
-            }
-        ],
-        'recent_activity': [
-            {
-                'type': 'campaign',
-                'title': 'Bulk Campaign Generated',
-                'description': 'Generated 27 personalized emails for "Q2 Outreach" campaign',
-                'time': '2 hours ago'
-            },
-            {
-                'type': 'template',
-                'title': 'Template Created',
-                'description': 'Created new template "Custom Follow-up" for tech industry',
-                'time': 'Yesterday'
-            },
-            {
-                'type': 'campaign',
-                'title': 'Campaign Completed',
-                'description': '"March Prospects" campaign completed with 32% response rate',
-                'time': '3 days ago'
-            },
-            {
-                'type': 'settings',
-                'title': 'Settings Updated',
-                'description': 'Updated notification preferences and sender information',
-                'time': '1 week ago'
-            },
-            {
-                'type': 'campaign',
-                'title': 'Bulk Campaign Generated',
-                'description': 'Generated 15 personalized emails for "Industry Conference" campaign',
-                'time': '1 week ago'
-            }
-        ]
+        'campaigns': campaign_stats,
+        'recent_activity': recent_activity
     }
     
     return render_template('dashboard.html', analytics=analytics)
@@ -807,130 +860,149 @@ def about():
 @login_required
 def process_bulk_emails():
     """API endpoint to process bulk emails"""
-    data = request.json
-    csv_data = data.get('csv_data')
-    template_id = data.get('template_id')
-    
-    if not csv_data:
+    if not current_user.is_authenticated:
         return jsonify({
             'success': False,
-            'errors': ['No CSV data provided']
-        })
-    
-    if not template_id:
-        return jsonify({
-            'success': False,
-            'errors': ['No template selected']
+            'message': 'Authentication required'
         })
     
     try:
-        # Parse CSV data
-        csv_io = io.StringIO(csv_data)
-        csv_reader = csv.DictReader(csv_io)
+        # Get JSON data
+        data = request.json
         
-        if not csv_reader.fieldnames:
+        # Validate input
+        if not data:
             return jsonify({
                 'success': False,
-                'errors': ['Invalid CSV format. Please check that your CSV is formatted correctly.']
+                'message': 'No data provided'
             })
         
-        required_fields = ['name', 'company', 'role', 'email']
+        # Extract data
+        smtp_config_id = data.get('smtp_config_id')
+        emails = data.get('emails', [])
+        campaign_name = data.get('campaign_name')
+        delay = int(data.get('delay', 2))
         
-        # Get the selected template
-        template_content = None
-        
-        if template_id.startswith('default_'):
-            # Get default template
-            template_type = template_id.replace('default_', '')
-            template_content = EmailGenerator.get_default_template(template_type)
-        else:
-            # Get custom template from database
-            try:
-                template_id_int = int(template_id)
-                custom_template = EmailTemplate.query.filter_by(id=template_id_int, user_id=current_user.id).first()
-                
-                if custom_template:
-                    template_content = custom_template.content
-                    # Update required fields based on template
-                    if custom_template.required_fields:
-                        required_fields = custom_template.required_fields.split(',')
-            except ValueError:
-                return jsonify({
-                    'success': False,
-                    'errors': ['Invalid template ID']
-                })
-        
-        if not template_content:
+        # Validate required fields
+        if not all([smtp_config_id, emails, campaign_name]):
             return jsonify({
                 'success': False,
-                'errors': ['Template not found']
+                'message': 'Missing required fields'
             })
         
-        # Check for required fields in CSV
-        missing_fields = [field for field in required_fields if field not in csv_reader.fieldnames]
-        if missing_fields:
+        # Get SMTP config
+        smtp_config = SMTPConfig.query.get(smtp_config_id)
+        if not smtp_config or smtp_config.user_id != current_user.id:
             return jsonify({
                 'success': False,
-                'errors': [f'Missing required fields in CSV: {", ".join(missing_fields)}']
+                'message': 'Invalid SMTP configuration'
             })
         
-        # Reset the CSV reader
-        csv_io.seek(0)
-        next(csv_reader)  # Skip the header row
+        # Get base URL for tracking
+        base_url = request.host_url.rstrip('/')
         
-        # Process each row
-        result = {
+        # Configure SMTP settings
+        smtp_config_dict = smtp_config.to_smtp_config()
+        
+        # Validate recipients and email content
+        if not emails or not isinstance(emails, list):
+            return jsonify({
+                'success': False,
+                'message': 'Invalid email data'
+            })
+        
+        results = {
             'success': True,
-            'total_recipients': 0,
-            'successful_recipients': 0,
-            'emails': [],
+            'total': len(emails),
+            'sent': 0,
+            'failed': 0,
             'errors': []
         }
         
-        for row_num, row in enumerate(csv_reader, start=2):
-            # Skip empty rows
-            if not any(row.values()):
-                continue
+        # Create email history records first to get IDs for tracking
+        email_records = []
+        for email_data in emails:
+            # Extract recipient and content
+            recipient = email_data.get('recipient')
+            subject = email_data.get('subject')
+            content = email_data.get('content')
             
-            # Check for required fields
-            if not all(row.get(field, '') for field in required_fields):
-                missing = [field for field in required_fields if not row.get(field, '')]
-                result['errors'].append(f"Row {row_num}: Missing values for {', '.join(missing)}")
-                continue
+            # Create email history record
+            email_history = EmailHistory(
+                user_id=current_user.id,
+                recipient=recipient,
+                subject=subject,
+                content=content,
+                campaign_name=campaign_name,
+                smtp_config_id=smtp_config.id
+            )
+            db.session.add(email_history)
             
-            result['total_recipients'] += 1
+            # Store for later processing
+            email_records.append({
+                'record': email_history,
+                'recipient': recipient,
+                'subject': subject,
+                'content': content
+            })
+        
+        # Commit to get IDs assigned
+        db.session.commit()
+        
+        # Process each email with tracking
+        for email_data in email_records:
+            record = email_data['record']
+            recipient = email_data['recipient']
+            subject = email_data['subject']
+            content = email_data['content']
             
             try:
-                # Generate email
-                generated_email = EmailGenerator.generate_email_from_template(row, template_content)
+                # Add tracking to the email content
+                tracked_content = EmailService.add_tracking_pixel(content, record.id, base_url)
+                tracked_content = EmailService.add_click_tracking(tracked_content, record.id, base_url)
                 
-                recipient_data = {
-                    'name': row.get('name', ''),
-                    'email': row.get('email', ''),
-                    'company': row.get('company', ''),
-                    'role': row.get('role', '')
-                }
+                # Send the email
+                success, message = EmailService.send_email(
+                    recipient_email=recipient,
+                    subject=subject,
+                    html_content=tracked_content,
+                    smtp_config=smtp_config_dict
+                )
                 
-                result['emails'].append({
-                    'recipient': recipient_data,
-                    'email': generated_email
-                })
-                result['successful_recipients'] += 1
+                # Update record with status
+                record.status = 'sent' if success else 'failed'
+                if not success:
+                    record.error_message = message
+                    results['failed'] += 1
+                    results['errors'].append(f"Failed to send to {recipient}: {message}")
+                else:
+                    results['sent'] += 1
+                
+                # Add delay between emails if specified
+                if delay > 0:
+                    import time
+                    time.sleep(delay)
+                    
             except Exception as e:
-                result['errors'].append(f"Row {row_num}: Error generating email - {str(e)}")
-            
-        # Update success flag if we have any emails
-        if result['successful_recipients'] == 0 and result['total_recipients'] > 0:
-            result['success'] = False
+                # Update record with error
+                record.status = 'failed'
+                record.error_message = str(e)
+                results['failed'] += 1
+                results['errors'].append(f"Error sending to {recipient}: {str(e)}")
         
-        return jsonify(result)
-    
+        # Commit all updates
+        db.session.commit()
+        
+        # Update user stats
+        current_user.record_bulk_campaign(len(emails))
+        
+        return jsonify(results)
+        
     except Exception as e:
-        print(f"Error processing bulk emails: {str(e)}")
         return jsonify({
             'success': False,
-            'errors': [f'Server error: {str(e)}']
-        }), 500
+            'message': f'Error processing bulk emails: {str(e)}'
+        })
 
 @app.route('/auth/login')
 def login_page():
@@ -1425,72 +1497,73 @@ def test_smtp_connection(config_id):
             'message': f'Error testing connection: {str(e)}'
         })
 
-@app.route('/send-email', methods=['POST'])
+@app.route('/send_email', methods=['POST'])
 @login_required
 def send_email():
     """Send a single email using configured SMTP server"""
     try:
         # Get form data
-        recipient = request.json.get('recipient')
-        subject = request.json.get('subject')
-        content = request.json.get('content')
-        config_id = request.json.get('smtp_config_id')
+        smtp_config_id = request.form.get('smtp_config_id')
+        recipient = request.form.get('recipient')
+        subject = request.form.get('subject')
+        html_content = request.form.get('content')
         
-        # Validate input
-        if not all([recipient, subject, content]):
-            return jsonify({
-                'success': False,
-                'message': 'Missing required fields'
-            })
+        # Validate required fields
+        if not all([smtp_config_id, recipient, subject, html_content]):
+            flash('Please fill all required fields', 'danger')
+            return redirect(url_for('bulk'))
         
-        # Get SMTP config (use default if not specified)
-        if config_id:
-            smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
-        else:
-            smtp_config = SMTPConfig.query.filter_by(user_id=current_user.id, is_default=True).first()
+        # Get SMTP config
+        smtp_config = SMTPConfig.query.get(smtp_config_id)
+        if not smtp_config or smtp_config.user_id != current_user.id:
+            flash('Invalid SMTP configuration', 'danger')
+            return redirect(url_for('bulk'))
         
-        if not smtp_config:
-            return jsonify({
-                'success': False,
-                'message': 'No SMTP configuration available'
-            })
-        
-        # Send email
-        success, message = EmailService.send_email(
-            recipient_email=recipient,
-            subject=subject,
-            html_content=content,
-            smtp_config=smtp_config.to_smtp_config()
-        )
-        
-        # Record in email history
+        # Create email history record
         email_history = EmailHistory(
             user_id=current_user.id,
             recipient=recipient,
             subject=subject,
-            status='sent' if success else 'failed',
-            error_message=None if success else message
+            content=html_content,
+            smtp_config_id=smtp_config.id
         )
-        
         db.session.add(email_history)
         db.session.commit()
         
+        # Add tracking to the email content
+        base_url = request.host_url.rstrip('/')
+        html_content = EmailService.add_tracking_pixel(html_content, email_history.id, base_url)
+        html_content = EmailService.add_click_tracking(html_content, email_history.id, base_url)
+        
+        # Send the email
+        smtp_config_dict = smtp_config.to_smtp_config()
+        success, message = EmailService.send_email(
+            recipient_email=recipient,
+            subject=subject,
+            html_content=html_content,
+            smtp_config=smtp_config_dict
+        )
+        
+        # Update email history with status
+        email_history.status = 'sent' if success else 'failed'
+        if not success:
+            email_history.error_message = message
+        db.session.commit()
+        
+        # Increment usage counter
+        current_user.increment_usage()
+        
+        # Flash message
         if success:
-            return jsonify({
-                'success': True,
-                'message': 'Email sent successfully'
-            })
+            flash('Email sent successfully', 'success')
         else:
-            return jsonify({
-                'success': False,
-                'message': f'Failed to send email: {message}'
-            })
+            flash(f'Failed to send email: {message}', 'danger')
             
+        return redirect(url_for('bulk'))
+        
     except Exception as e:
-        return jsonify({
-            'success': False,
-            'message': f'Error sending email: {str(e)}'
-        })
+        flash(f'Error sending email: {str(e)}', 'danger')
+        return redirect(url_for('bulk'))
 
 @app.route('/delete-template/<int:template_id>', methods=['POST'])
 @login_required

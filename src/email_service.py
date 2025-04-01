@@ -206,3 +206,72 @@ class EmailService:
                 time.sleep(delay_seconds)
                 
         return results
+    
+    @staticmethod
+    def add_tracking_pixel(html_content: str, email_id: int, base_url: str) -> str:
+        """
+        Add tracking pixel to email HTML content
+        
+        Args:
+            html_content: Original HTML content of email
+            email_id: ID of the email in the database
+            base_url: Base URL for tracking links (should include protocol and domain)
+            
+        Returns:
+            HTML content with tracking pixel added
+        """
+        from app import generate_tracking_token
+        
+        # Generate tracking token for this email
+        token = generate_tracking_token(email_id)
+        
+        # Create tracking pixel URL
+        pixel_url = f"{base_url}/track/open/{token}.gif"
+        
+        # Add tracking pixel at the end of the email body
+        tracking_pixel = f'<img src="{pixel_url}" width="1" height="1" alt="" style="display:none;border:0;width:1px;height:1px" />'
+        
+        # Insert the tracking pixel before the closing body tag
+        if '</body>' in html_content:
+            html_content = html_content.replace('</body>', f'{tracking_pixel}</body>')
+        else:
+            html_content = f'{html_content}{tracking_pixel}'
+            
+        return html_content
+    
+    @staticmethod
+    def add_click_tracking(html_content: str, email_id: int, base_url: str) -> str:
+        """
+        Add click tracking to all links in the email
+        
+        Args:
+            html_content: Original HTML content of email
+            email_id: ID of the email in the database
+            base_url: Base URL for tracking links
+            
+        Returns:
+            HTML content with click tracking added to links
+        """
+        import re
+        from app import generate_tracking_token
+        
+        # Generate tracking token for this email
+        token = generate_tracking_token(email_id)
+        
+        # Find all links in the HTML
+        link_pattern = re.compile(r'<a\s+(?:[^>]*?\s+)?href=(["\'])(.*?)\1', re.IGNORECASE)
+        
+        def replace_link(match):
+            href = match.group(2)
+            # Don't track unsubscribe or special links
+            if 'unsubscribe' in href.lower() or 'mailto:' in href.lower():
+                return match.group(0)
+            
+            # Create tracking URL with original URL as parameter
+            tracking_url = f"{base_url}/track/click/{token}?url={href}"
+            return match.group(0).replace(match.group(2), tracking_url)
+        
+        # Replace all links with tracking links
+        tracked_html = link_pattern.sub(replace_link, html_content)
+        
+        return tracked_html
