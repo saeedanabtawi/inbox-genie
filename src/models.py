@@ -244,14 +244,17 @@ class EmailTemplate(db.Model):
 class LoginAttempt(db.Model):
     """Model to track login attempts for security monitoring"""
     id = db.Column(db.Integer, primary_key=True)
-    email = db.Column(db.String(120), nullable=False)
+    email = db.Column(db.String(120), nullable=True)  # Can be null if username login
+    username = db.Column(db.String(64), nullable=True)  # Can be null if email login
+    identifier = db.Column(db.String(120), nullable=False)  # The actual login identifier used
+    identifier_type = db.Column(db.String(10), nullable=False, default='email')  # 'email' or 'username'
     ip_address = db.Column(db.String(45), nullable=True)
     user_agent = db.Column(db.String(255), nullable=True)
     success = db.Column(db.Boolean, default=False)
     timestamp = db.Column(db.DateTime, default=datetime.utcnow)
     
     def __repr__(self):
-        return f'<LoginAttempt {self.email} {self.timestamp}>'
+        return f'<LoginAttempt {self.identifier} {self.timestamp}>'
 
 
 class UserSession(db.Model):

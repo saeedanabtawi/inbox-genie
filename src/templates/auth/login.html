@@ -36,14 +36,14 @@
                     <form method="POST" action="{{ url_for('auth.login') }}">
                         {{ form.hidden_tag() }}
                         <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
+                            <label for="identifier" class="form-label">Email or Username</label>
                             <div class="input-group">
-                                <span class="input-group-text"><i class="bi bi-envelope"></i></span>
-                                <input type="email" class="form-control" id="email" name="email" placeholder="you@example.com" required>
+                                <span class="input-group-text"><i class="bi bi-person"></i></span>
+                                <input type="text" class="form-control" id="identifier" name="identifier" placeholder="Email address or username" required>
                             </div>
-                            {% if form.email.errors %}
+                            {% if form.identifier.errors %}
                                 <div class="invalid-feedback d-block">
-                                    {% for error in form.email.errors %}
+                                    {% for error in form.identifier.errors %}
                                         {{ error }}
                                     {% endfor %}
                                 </div>

@@ -38,7 +38,7 @@ def load_user(user_id):
 # Forms for authentication
 class LoginForm(FlaskForm):
     """Form for user login"""
-    email = StringField('Email', validators=[DataRequired(), Email()])
+    identifier = StringField('Email or Username', validators=[DataRequired()])
     password = PasswordField('Password', validators=[DataRequired()])
     remember = BooleanField('Remember Me')
     submit = SubmitField('Sign In')
@@ -136,15 +136,23 @@ def login():
     form = LoginForm()
     
     if form.validate_on_submit():
-        email = form.email.data.lower()
+        identifier = form.identifier.data.lower()
         password = form.password.data
         remember = form.remember.data
         
-        user = User.query.filter_by(email=email).first()
+        # Try to find user by email first, then by username
+        user = User.query.filter_by(email=identifier).first()
+        identifier_type = 'email' if user else 'username'
         
-        # Create login attempt record
+        if not user:
+            user = User.query.filter_by(username=identifier).first()
+        
+        # Create login attempt record with enhanced schema
         login_attempt = LoginAttempt(
-            email=email,
+            identifier=identifier,
+            identifier_type=identifier_type,
+            email=identifier if identifier_type == 'email' else None,
+            username=identifier if identifier_type == 'username' else None,
             ip_address=request.remote_addr,
             user_agent=request.user_agent.string,
             success=False
@@ -201,9 +209,9 @@ def login():
                     user.account_locked_until = datetime.utcnow() + timedelta(minutes=30)
                     flash('Too many failed login attempts. Your account has been locked for 30 minutes.', 'danger')
                 else:
-                    flash('Invalid email or password. Please try again.', 'danger')
+                    flash('Invalid credentials. Please try again.', 'danger')
             else:
-                flash('Invalid email or password. Please try again.', 'danger')
+                flash('Invalid credentials. Please try again.', 'danger')
                 
             db.session.add(login_attempt)
             db.session.commit()
