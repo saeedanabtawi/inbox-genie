@@ -1,17 +1,63 @@
 /* Main Styles for Inbox Genie */
 
 body {
-    font-family: 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     background-color: #f8f9fa;
     color: #343a40;
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    letter-spacing: -0.02em;
+    line-height: 1.15;
+    margin-bottom: 1rem;
+    color: #1F2937;
+    font-weight: 600;
+}
+
+h1 {
+    font-size: 40px;
+    font-weight: 700;
+}
+
+h2 {
+    font-size: 32px;
+}
+
+h3 {
+    font-size: 24px;
+}
+
+h4 {
+    font-size: 20px;
+}
+
+p {
+    margin-bottom: 1rem;
 }
 
 .navbar-brand {
     font-weight: 600;
-    letter-spacing: 0.5px;
+    letter-spacing: -0.01em;
+    font-size: 18px;
+}
+
+.nav-link {
+    font-size: 16px;
+    font-weight: 500;
+}
+
+.btn {
+    font-size: 16px;
+    padding: 0.55rem 1.25rem;
+    border-radius: 8px;
+    font-weight: 500;
 }
 
 .card {
@@ -28,11 +74,17 @@ body {
 .card-header {
     border-top-left-radius: 0.5rem !important;
     border-top-right-radius: 0.5rem !important;
+    font-size: 16px;
 }
 
 .form-label {
     font-weight: 500;
-    font-size: 0.875rem;
+    font-size: 16px;
+}
+
+.form-control {
+    font-size: 16px;
+    padding: 0.5rem 0.75rem;
 }
 
 .form-control:focus {

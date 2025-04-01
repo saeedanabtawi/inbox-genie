@@ -1,32 +1,220 @@
 {% extends "base.html" %}
 
-{% block title %}Inbox Genie - AI-Powered Cold Email Personalization{% endblock %}
+{% block title %}Inbox Genie - AI-Powered Email Personalization{% endblock %}
 
 {% block extra_css %}
 <style>
+    :root {
+        --primary-color: #4F46E5;
+        --secondary-color: #8B5CF6;
+        --accent-color: #C084FC;
+        --light-bg: #F9FAFB;
+        --dark-text: #111827;
+        --gray-text: #6B7280;
+        --lighter-gray: #F3F4F6;
+    }
+    
     .hero-section {
-        background: linear-gradient(135deg, #6f42c1, #007bff);
-        padding: 100px 0;
-        color: white;
+        padding: 120px 0 80px;
+        background: linear-gradient(to right, #F9FAFB, #F3F4F6);
     }
+    
+    .gradient-text {
+        background: linear-gradient(90deg, var(--primary-color), var(--secondary-color));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        display: inline;
+    }
+    
+    .subtitle {
+        color: #4B5563;
+        font-size: 18px;
+        font-weight: 400;
+        max-width: 650px;
+        margin: 1.5rem auto 2.5rem;
+        line-height: 1.6;
+    }
+    
+    .display-4 {
+        font-size: 48px;
+        line-height: 1.1;
+        letter-spacing: -0.02em;
+        font-weight: 700;
+    }
+    
+    .btn-primary {
+        background-color: var(--primary-color);
+        border-color: var(--primary-color);
+        padding: 0.55rem 1.25rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-size: 16px;
+    }
+    
+    .btn-primary:hover {
+        background-color: #4338CA;
+        border-color: #4338CA;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.15);
+    }
+    
+    .btn-outline {
+        color: var(--primary-color);
+        background-color: transparent;
+        border: 1px solid var(--primary-color);
+        padding: 0.55rem 1.25rem;
+        font-weight: 500;
+        border-radius: 8px;
+        transition: all 0.2s ease;
+        font-size: 16px;
+    }
+    
+    .btn-outline:hover {
+        background-color: rgba(79, 70, 229, 0.05);
+        transform: translateY(-1px);
+    }
+    
+    .dashboard-preview {
+        border-radius: 12px;
+        box-shadow: 0 15px 40px rgba(0, 0, 0, 0.1);
+        transform: perspective(1000px) rotateY(-5deg) rotateX(5deg);
+        transition: all 0.5s ease;
+    }
+    
+    .dashboard-preview:hover {
+        transform: perspective(1000px) rotateY(0deg) rotateX(0deg);
+    }
+    
+    .feature-card {
+        padding: 28px;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        height: 100%;
+        transition: all 0.2s ease;
+    }
+    
+    .feature-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+    }
+    
+    .feature-card h3 {
+        font-size: 20px;
+        margin-bottom: 16px;
+    }
+    
     .feature-icon {
-        font-size: 2.5rem;
+        width: 56px;
+        height: 56px;
+        border-radius: 10px;
+        background: linear-gradient(135deg, #4F46E5, #8B5CF6);
+        display: flex;
+        align-items: center;
+        justify-content: center;
         margin-bottom: 20px;
-        color: #6f42c1;
+        color: white;
+        font-size: 22px;
     }
-    .cta-section {
-        background-color: #f8f9fa;
-        padding: 80px 0;
+    
+    .steps-section {
+        background-color: var(--light-bg);
+        padding: 100px 0;
     }
+    
+    .steps-section h2 {
+        font-size: 32px;
+        margin-bottom: 12px;
+    }
+    
+    .steps-section .lead {
+        margin-bottom: 50px;
+        font-size: 18px;
+    }
+    
+    .step-card {
+        padding: 28px;
+        border-radius: 10px;
+        background-color: white;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+        margin-bottom: 30px;
+    }
+    
+    .step-card h3 {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 12px;
+    }
+    
+    .step-number {
+        background-color: var(--primary-color);
+        color: white;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: bold;
+        margin-bottom: 16px;
+        font-size: 16px;
+    }
+    
     .testimonial {
         background-color: white;
-        border-radius: 8px;
-        padding: 25px;
+        border-radius: 10px;
+        padding: 28px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
         margin: 20px 0;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.05);
     }
+    
     .testimonial-text {
         font-style: italic;
+        font-size: 16px;
+        color: #1F2937;
+        line-height: 1.6;
+        margin-bottom: 20px;
+    }
+    
+    .company-logos {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 40px;
+        opacity: 0.7;
+    }
+    
+    .company-logos img {
+        height: 24px;
+    }
+    
+    .cta-section {
+        padding: 100px 0;
+    }
+    
+    .section-divider {
+        height: 1px;
+        background: linear-gradient(to right, transparent, var(--secondary-color), transparent);
+        margin: 80px 0;
+        opacity: 0.15;
+    }
+    
+    /* Media Queries for Typography Adjustments */
+    @media (max-width: 768px) {
+        .display-4 {
+            font-size: 36px;
+        }
+        
+        .subtitle {
+            font-size: 16px;
+        }
+        
+        .hero-section {
+            padding: 100px 0 60px;
+        }
     }
 </style>
 {% endblock %}
@@ -34,12 +222,84 @@
 {% block content %}
 <!-- Hero Section -->
 <section class="hero-section">
+    <div class="container">
+        <div class="row align-items-center">
+            <div class="col-lg-6 text-center text-lg-start">
+                <h1 class="display-4 fw-bold">
+                    A <span class="gradient-text">dashboard</span> for each of your emails
+                </h1>
+                <p class="subtitle">Email personalization designed to help you get more responses. Don't let potential connections slip through the cracks.</p>
+                <div class="d-flex gap-3 flex-wrap justify-content-center justify-content-lg-start">
+                    <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Get started</a>
+                    <a href="{{ url_for('about') }}" class="btn btn-outline">Get a demo</a>
+                </div>
+            </div>
+            <div class="col-lg-6 mt-5 mt-lg-0">
+                <img src="https://placehold.co/800x500/EEE/31343C?text=Email+Dashboard+Preview" class="img-fluid dashboard-preview" alt="Inbox Genie Dashboard">
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Company Logos -->
+<section class="py-5">
     <div class="container text-center">
-        <h1 class="display-3 mb-4">Maximize Your Email Response Rates</h1>
-        <p class="lead mb-5">Inbox Genie uses AI to craft personalized cold emails that engage, connect, and convert.</p>
-        <div class="d-flex justify-content-center">
-            <a href="{{ url_for('auth.register') }}" class="btn btn-light btn-lg me-3">Get Started</a>
-            <a href="{{ url_for('about') }}" class="btn btn-outline-light btn-lg">Learn More</a>
+        <h2 class="mb-4">Trusted by innovative companies</h2>
+        <div class="company-logos mt-4">
+            <img src="https://placehold.co/140x40/EEE/31343C?text=Company+1" alt="Company Logo">
+            <img src="https://placehold.co/140x40/EEE/31343C?text=Company+2" alt="Company Logo">
+            <img src="https://placehold.co/140x40/EEE/31343C?text=Company+3" alt="Company Logo">
+            <img src="https://placehold.co/140x40/EEE/31343C?text=Company+4" alt="Company Logo">
+            <img src="https://placehold.co/140x40/EEE/31343C?text=Company+5" alt="Company Logo">
+        </div>
+    </div>
+</section>
+
+<!-- Value Proposition -->
+<section class="py-5">
+    <div class="container text-center">
+        <h2 class="mb-4">Don't let a potential connection slip away</h2>
+        <p class="lead mb-0 text-muted">Monitor your outreach and find out what gets responses</p>
+    </div>
+</section>
+
+<!-- Steps Section -->
+<section class="steps-section">
+    <div class="container">
+        <div class="text-center mb-5">
+            <h2 class="mb-3">Improve your response rates in 4 steps</h2>
+            <p class="lead text-muted">Don't reinvent the wheel. Adopt proven engagement strategies from the industry.</p>
+        </div>
+        
+        <div class="row">
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">1</div>
+                    <h3>Analyze your audience</h3>
+                    <p class="text-muted">Understand who you're reaching out to with detailed profiles.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">2</div>
+                    <h3>Personalize at scale</h3>
+                    <p class="text-muted">Create highly personalized emails for each recipient automatically.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">3</div>
+                    <h3>Track engagement</h3>
+                    <p class="text-muted">See what's working and what needs improvement in real-time.</p>
+                </div>
+            </div>
+            <div class="col-md-6 col-lg-3">
+                <div class="step-card">
+                    <div class="step-number">4</div>
+                    <h3>Optimize & iterate</h3>
+                    <p class="text-muted">Continuously refine your messaging based on response data.</p>
+                </div>
+            </div>
         </div>
     </div>
 </section>
@@ -47,77 +307,170 @@
 <!-- Features Section -->
 <section class="py-5">
     <div class="container">
-        <h2 class="text-center mb-5">Why Choose Inbox Genie</h2>
-        <div class="row">
+        <div class="text-center mb-5">
+            <h2>Why choose Inbox Genie</h2>
+            <p class="lead text-muted">Features that make your outreach more effective</p>
+        </div>
+        
+        <div class="row g-4">
             <div class="col-md-4">
-                <div class="feature-box">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="bi bi-person-check"></i>
                     </div>
                     <h3>Deep Personalization</h3>
-                    <p>Analyze recipient data including role, company, LinkedIn profile, recent activity, and industry news to create truly personalized openers.</p>
+                    <p class="text-muted">Analyze recipient data including role, company, LinkedIn profile, recent activity, and industry news to create truly personalized openers.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-box">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="bi bi-bullseye"></i>
                     </div>
                     <h3>Highlight Relevance</h3>
-                    <p>Automatically connect your product or service to the specific challenges and pain points of your recipient.</p>
+                    <p class="text-muted">Automatically connect your product or service to the specific challenges and pain points of your recipient.</p>
                 </div>
             </div>
             <div class="col-md-4">
-                <div class="feature-box">
+                <div class="feature-card">
                     <div class="feature-icon">
                         <i class="bi bi-graph-up"></i>
                     </div>
                     <h3>Strong Call-to-Action</h3>
-                    <p>End every email with a compelling and clear next step to drive engagement and responses.</p>
+                    <p class="text-muted">End every email with a compelling and clear next step to drive engagement and responses.</p>
                 </div>
             </div>
         </div>
     </div>
 </section>
 
-<!-- Bulk Processing Section -->
+<!-- Bulk Section -->
 <section class="py-5 bg-light">
     <div class="container">
         <div class="row align-items-center">
             <div class="col-lg-6">
-                <h2>Bulk Email Processing</h2>
-                <p class="lead">Save hours of work with our CSV upload feature.</p>
-                <p>Upload a spreadsheet with recipient details and generate dozens or even hundreds of personalized emails in seconds. Each email will be uniquely tailored to the individual recipient while maintaining your core message.</p>
-                <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Try It Now</a>
+                <h2>Process hundreds of emails in minutes</h2>
+                <p class="lead">Save hours of work with our CSV upload feature</p>
+                <p class="text-muted">Upload a spreadsheet with recipient details and generate dozens or even hundreds of personalized emails in seconds. Each email will be uniquely tailored to the individual recipient while maintaining your core message.</p>
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary mt-3">Try it now</a>
             </div>
-            <div class="col-lg-6">
-                <img src="https://placehold.co/600x400/6f42c1/white?text=Bulk+Processing" class="img-fluid rounded shadow" alt="Bulk Email Processing">
+            <div class="col-lg-6 mt-4 mt-lg-0">
+                <img src="https://placehold.co/600x400/EEE/31343C?text=Bulk+Processing" class="img-fluid rounded-3 shadow" alt="Bulk Email Processing">
             </div>
         </div>
     </div>
 </section>
 
-<!-- Testimonials -->
+<!-- Section Divider -->
+<div class="container">
+    <div class="section-divider"></div>
+</div>
+
+<!-- Customer Success Section -->
 <section class="py-5">
     <div class="container">
-        <h2 class="text-center mb-5">What Our Users Say</h2>
+        <div class="row mb-5">
+            <div class="col-12 text-center">
+                <h2>Success Stories</h2>
+                <p class="lead text-muted">Real results from real customers</p>
+            </div>
+        </div>
+        
+        <div class="row g-4">
+            <div class="col-md-4">
+                <div class="testimonial">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="https://placehold.co/60x60/EEE/31343C?text=Logo" class="rounded-circle" alt="Company Logo">
+                        <div class="ms-3">
+                            <h5 class="mb-0">TechStart Inc.</h5>
+                            <p class="text-muted mb-0">Software Development</p>
+                        </div>
+                    </div>
+                    <p class="mb-3">"Inbox Genie increased our response rates by 37% in just the first month. The personalization is on another level."</p>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="fw-bold mb-0">Sarah Johnson</p>
+                            <p class="text-muted mb-0">Marketing Director</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="https://placehold.co/60x60/EEE/31343C?text=Logo" class="rounded-circle" alt="Company Logo">
+                        <div class="ms-3">
+                            <h5 class="mb-0">GrowthHQ</h5>
+                            <p class="text-muted mb-0">Digital Marketing</p>
+                        </div>
+                    </div>
+                    <p class="mb-3">"I used to spend hours crafting personalized emails. Now I can focus on the conversations that matter while Inbox Genie handles the initial outreach."</p>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="fw-bold mb-0">Michael Rodriguez</p>
+                            <p class="text-muted mb-0">Sales Executive</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="testimonial">
+                    <div class="d-flex align-items-center mb-4">
+                        <img src="https://placehold.co/60x60/EEE/31343C?text=Logo" class="rounded-circle" alt="Company Logo">
+                        <div class="ms-3">
+                            <h5 class="mb-0">Nova Solutions</h5>
+                            <p class="text-muted mb-0">B2B Services</p>
+                        </div>
+                    </div>
+                    <p class="mb-3">"The bulk processing feature is a game changer. What used to take my team a full day now takes minutes, and the quality is consistently excellent."</p>
+                    <div class="d-flex align-items-center">
+                        <div>
+                            <p class="fw-bold mb-0">Alex Thompson</p>
+                            <p class="text-muted mb-0">Business Development</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- How It Works -->
+<section class="py-5 bg-light">
+    <div class="container">
+        <div class="row mb-5">
+            <div class="col-lg-8 mx-auto text-center">
+                <h2>How It Works</h2>
+                <p class="lead text-muted">Simple steps to better email outreach</p>
+            </div>
+        </div>
+        
         <div class="row">
-            <div class="col-md-4">
-                <div class="testimonial">
-                    <p class="testimonial-text">"Inbox Genie increased our cold email response rates by 37% in just the first month. The personalization is on another level."</p>
-                    <p class="fw-bold mb-0">- Sarah J., Marketing Director</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="testimonial">
-                    <p class="testimonial-text">"I used to spend hours crafting personalized emails. Now I can focus on the conversations that matter while Inbox Genie handles the initial outreach."</p>
-                    <p class="fw-bold mb-0">- Michael R., Sales Executive</p>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="testimonial">
-                    <p class="testimonial-text">"The bulk processing feature is a game changer. What used to take my team a full day now takes minutes, and the quality is consistently excellent."</p>
-                    <p class="fw-bold mb-0">- Alex T., Business Development</p>
+            <div class="col-lg-10 mx-auto">
+                <div class="step-card mb-0">
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="d-flex mb-3">
+                                <div class="step-number">1</div>
+                                <h5>Input Data</h5>
+                            </div>
+                            <p class="text-muted">Enter recipient information or upload a CSV with multiple contacts</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex mb-3">
+                                <div class="step-number">2</div>
+                                <h5>Personalize</h5>
+                            </div>
+                            <p class="text-muted">Add pain points, recent activities, and your value proposition</p>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="d-flex mb-3">
+                                <div class="step-number">3</div>
+                                <h5>Generate</h5>
+                            </div>
+                            <p class="text-muted">Create personalized emails ready to send in seconds</p>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -128,9 +481,11 @@
 <section class="cta-section">
     <div class="container text-center">
         <h2 class="mb-4">Ready to transform your email outreach?</h2>
-        <p class="lead mb-4">Get started with Inbox Genie today and see the difference personalization makes.</p>
-        <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg px-5">Sign Up Now</a>
-        <p class="mt-3">Already have an account? <a href="{{ url_for('auth.login') }}">Log in</a></p>
+        <p class="lead mb-4 text-muted">Get started with Inbox Genie today and see the difference personalization makes.</p>
+        <div class="d-flex justify-content-center gap-3">
+            <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Sign up now</a>
+            <a href="{{ url_for('auth.login') }}" class="btn btn-outline">Log in</a>
+        </div>
     </div>
 </section>
 {% endblock %}

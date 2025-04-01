@@ -31,8 +31,8 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 # Initialize authentication
 app = init_auth(app)
 
-# Register the authentication blueprint
-app.register_blueprint(auth_bp, url_prefix='/auth')
+# The auth_bp is already registered in init_auth function
+# No need to register it again here
 
 # Setup global login manager
 login_manager = LoginManager()
@@ -802,8 +802,8 @@ def get_templates():
 
 @app.route('/about')
 def about():
-    """Render the about page - public access"""
-    return render_template('about.html')
+    """Redirect the about page to landing page since content is merged"""
+    return redirect(url_for('landing'))
 
 @app.route('/api/process-bulk-emails', methods=['POST'])
 @login_required
@@ -1538,7 +1538,7 @@ def delete_template(template_id):
         }), 500
 
 # Create error templates directory if it doesn't exist
-@app.before_first_request
+# @app.before_first_request  # This decorator was removed in Flask 2.3+
 def create_error_templates():
     """Create error templates directory"""
     templates_dir = os.path.join(app.root_path, 'templates')
@@ -1602,4 +1602,7 @@ def server_error(e):
     return render_template('errors/500.html'), 500
 
 if __name__ == '__main__':
+    # Call function to create error templates directory during startup
+    # This replaces the removed @app.before_first_request decorator
+    create_error_templates()
     app.run(debug=True)

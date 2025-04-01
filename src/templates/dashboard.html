@@ -29,427 +29,292 @@
         color: #0d6efd !important;
     }
     
-    .stat-label {
+    .card-subtitle {
         color: #6c757d;
-        font-size: 0.9rem;
-        font-weight: 500;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-    
-    .user-avatar {
-        background-color: #0d6efd;
-        box-shadow: 0 4px 8px rgba(13, 110, 253, 0.2);
-        border: 2px solid #fff;
-    }
-    
-    .stat-group {
-        padding-top: 0.5rem;
-        padding-bottom: 0.5rem;
-        border-left: 1px solid rgba(0,0,0,0.05);
-    }
-    
-    .badge.bg-success {
-        background-color: #10b981 !important;
-        font-weight: 500;
-        padding: 0.4rem 0.8rem;
-    }
-    
-    .recent-activity-item {
-        border-left: 3px solid #f8f9fa;
-        padding-left: 1rem;
-        margin-bottom: 1rem;
-        position: relative;
-    }
-    
-    .recent-activity-item:hover {
-        border-left-color: #0d6efd;
-    }
-    
-    .activity-time {
-        font-size: 0.8rem;
-        color: #6c757d;
-    }
-    
-    .activity-icon {
-        background-color: #f8f9fa;
-        color: #0d6efd;
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin-right: 0.75rem;
-    }
-    
-    .alert-insight {
-        border-left: 4px solid;
-    }
-    
-    .performance-metric {
-        display: flex;
-        align-items: center;
-        margin-bottom: 0.5rem;
-    }
-    
-    .metric-label {
-        flex: 1;
-    }
-    
-    .metric-progress {
-        flex: 2;
-        height: 8px;
-    }
-    
-    .filter-pill {
-        border-radius: 20px;
-        padding: 0.25rem 0.75rem;
-        margin-right: 0.5rem;
-        margin-bottom: 0.5rem;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .filter-pill:hover {
-        background-color: #e9ecef;
-    }
-    
-    .filter-pill.active {
-        background-color: #0d6efd;
-        color: white;
+        font-size: 0.85rem;
     }
     
     .widget-header {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-bottom: 1rem;
+        margin-bottom: 1.5rem;
     }
     
     .widget-title {
+        font-weight: 600;
+        font-size: 1.1rem;
         margin-bottom: 0;
+    }
+    
+    .stat-card {
+        padding: 1.25rem;
+        border-radius: 0.5rem;
+        box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+        background-color: white;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    
+    .stat-title {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        letter-spacing: 0.05rem;
+        font-weight: 600;
+        color: #6c757d;
+        margin-bottom: 0.5rem;
+    }
+    
+    .user-initial {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        background-color: #6f42c1;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        font-size: 1.25rem;
+        margin-right: 1rem;
+    }
+    
+    .user-info {
+        display: flex;
+        align-items: center;
+        margin-bottom: 1.5rem;
+    }
+    
+    .user-details h5 {
+        margin-bottom: 0.25rem;
         font-weight: 600;
     }
     
-    .widget-action {
+    .user-details p {
+        margin-bottom: 0;
+        color: #6c757d;
+        font-size: 0.85rem;
+    }
+    
+    .badge-free {
+        background-color: #28a745;
+        color: white;
+        padding: 0.25rem 0.5rem;
+        border-radius: 0.25rem;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .page-header {
+        margin-bottom: 1.5rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #dee2e6;
+    }
+
+    .stats-row {
+        display: flex;
+        justify-content: space-between;
+        margin-bottom: 2rem;
+    }
+
+    .stat-block {
+        text-align: center;
+        padding: 1rem;
+        flex: 1;
+    }
+
+    .stat-value {
+        font-size: 2rem;
+        font-weight: 700;
+        margin-bottom: 0.5rem;
+        letter-spacing: -0.02em;
+        color: #1F2937;
+    }
+
+    .stat-label {
         font-size: 0.9rem;
+        color: #6B7280;
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        font-weight: 500;
+    }
+
+    .tab-buttons {
+        background-color: #f8f9fa;
+        border-radius: 8px;
+        display: inline-flex;
+        padding: 4px;
+        margin-bottom: 1.5rem;
+    }
+
+    .tab-button {
+        padding: 0.5rem 1rem;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 500;
+        background: none;
+        border: none;
+        color: #4B5563;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .tab-button.active {
+        background-color: white;
+        color: #1F2937;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    }
+
+    .chart-container {
+        position: relative;
+        height: 350px;
+        margin-bottom: 2rem;
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
-                    <h1 class="mb-1">Dashboard</h1>
-                    <p class="text-muted">Welcome back, {{ current_user.username }}!</p>
-                </div>
-                <div class="d-flex">
-                    <div class="dropdown me-2">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="timeframeDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="bi bi-calendar3"></i> Last 30 Days
-                        </button>
-                        <ul class="dropdown-menu" aria-labelledby="timeframeDropdown">
-                            <li><a class="dropdown-item" href="#">Today</a></li>
-                            <li><a class="dropdown-item" href="#">Last 7 Days</a></li>
-                            <li><a class="dropdown-item active" href="#">Last 30 Days</a></li>
-                            <li><a class="dropdown-item" href="#">This Month</a></li>
-                            <li><a class="dropdown-item" href="#">This Quarter</a></li>
-                            <li><a class="dropdown-item" href="#">Custom Range</a></li>
-                        </ul>
-                    </div>
-                    <button class="btn btn-primary" id="refreshDashboard">
-                        <i class="bi bi-arrow-clockwise me-1"></i>Refresh
+<div class="py-4">
+    <div class="container">
+        <div class="page-header d-flex justify-content-between align-items-center">
+            <h1 class="h2">Dashboard</h1>
+            <div class="d-flex gap-2">
+                <div class="dropdown">
+                    <button class="btn btn-light dropdown-toggle" type="button" id="timeRange" data-bs-toggle="dropdown" aria-expanded="false">
+                        Last 30 days
                     </button>
+                    <ul class="dropdown-menu" aria-labelledby="timeRange">
+                        <li><a class="dropdown-item" href="#">Last 7 days</a></li>
+                        <li><a class="dropdown-item" href="#">Last 30 days</a></li>
+                        <li><a class="dropdown-item" href="#">Last 90 days</a></li>
+                    </ul>
+                </div>
+                <button class="btn btn-primary">Refresh</button>
+            </div>
+        </div>
+
+        <!-- User Stats -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="user-info">
+                    <div class="user-initial">S</div>
+                    <div class="user-details">
+                        <h5>{{ current_user.username }}</h5>
+                        <p>Member since {{ current_user.created_at.strftime('%b %Y') }} <span class="badge-free ms-2">Free Plan</span></p>
+                    </div>
+                </div>
+                
+                <div class="stats-row">
+                    <div class="stat-block">
+                        <div class="stat-value text-primary">0%</div>
+                        <div class="stat-label">Usage</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Emails Sent</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-value">0</div>
+                        <div class="stat-label">Campaigns</div>
+                    </div>
+                    <div class="stat-block">
+                        <div class="stat-value">8.7</div>
+                        <div class="stat-label">Avg. Score</div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-    
-    <!-- User Overview Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <div class="card shadow-sm dashboard-card">
-                <div class="card-body py-4">
-                    <div class="row align-items-center">
-                        <div class="col-md-6">
-                            <div class="d-flex align-items-center">
-                                <div class="user-avatar rounded-circle text-white d-flex align-items-center justify-content-center me-3" style="width: 64px; height: 64px; font-size: 24px;">
-                                    {{ current_user.username[0].upper() }}
+
+        <!-- Campaign Performance -->
+        <div class="card mb-4">
+            <div class="card-body">
+                <div class="widget-header">
+                    <h5 class="widget-title">Campaign Performance</h5>
+                    <div class="tab-buttons">
+                        <button class="tab-button active">Day</button>
+                        <button class="tab-button">Week</button>
+                        <button class="tab-button">Month</button>
+                    </div>
+                </div>
+                
+                <div class="row">
+                    <div class="col-md-9">
+                        <div class="chart-container">
+                            <canvas id="campaignChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card border-0 shadow-sm h-100">
+                            <div class="card-body">
+                                <h6 class="text-center mb-3">Response Rate</h6>
+                                <div class="d-flex justify-content-center mb-4">
+                                    <canvas id="responseChart" width="150" height="150"></canvas>
                                 </div>
                                 <div>
-                                    <h4 class="mb-1 fw-bold">{{ current_user.username }}</h4>
-                                    <div>
-                                        <span class="badge bg-success me-2">{{ current_user.subscription_tier }} Plan</span>
-                                        <span class="text-muted">Member since {{ current_user.created_at.strftime('%b %Y') if current_user.created_at else 'Apr 2025' }}</span>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Open Rate</span>
+                                        <span class="fw-bold">75%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Click Rate</span>
+                                        <span class="fw-bold">42%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center mb-2">
+                                        <span>Reply Rate</span>
+                                        <span class="fw-bold">31%</span>
+                                    </div>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <span>Conversion</span>
+                                        <span class="fw-bold">15%</span>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="row mt-md-0 mt-4">
-                                <div class="col-6 col-md-3 text-center stat-group">
-                                    <div class="card-stat text-primary">{% if current_user.subscription_tier == 'Enterprise' %}<span class="small">Unlimited</span>{% else %}{{ analytics.user_stats.usage_percentage }}%{% endif %}</div>
-                                    <div class="stat-label">Usage</div>
-                                </div>
-                                <div class="col-6 col-md-3 text-center stat-group">
-                                    <div class="card-stat">{{ analytics.user_stats.emails_generated }}</div>
-                                    <div class="stat-label">Emails Sent</div>
-                                </div>
-                                <div class="col-6 col-md-3 text-center stat-group">
-                                    <div class="card-stat">{{ analytics.user_stats.bulk_campaigns }}</div>
-                                    <div class="stat-label">Campaigns</div>
-                                </div>
-                                <div class="col-6 col-md-3 text-center stat-group">
-                                    <div class="card-stat">{{ "%.1f"|format(analytics.user_stats.avg_score) }}</div>
-                                    <div class="stat-label">Avg. Score</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Activity & Insights -->
+        <div class="row">
+            <div class="col-lg-7 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-body">
+                        <div class="widget-header">
+                            <h5 class="widget-title">Recent Activity</h5>
+                            <a href="#" class="btn btn-sm btn-outline-secondary">View All</a>
+                        </div>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-3 border-bottom">
+                                <div class="d-flex align-items-center">
+                                    <i class="bi bi-envelope me-3 text-primary fs-4"></i>
+                                    <div>
+                                        <p class="mb-0">Bulk Campaign Generated</p>
+                                        <small class="text-muted">2 hours ago</small>
+                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
-    </div>
-    
-    <!-- Analytics Section -->
-    <div class="row mb-4">
-        <div class="col-lg-8">
-            <div class="card shadow-sm dashboard-card h-100">
-                <div class="card-body">
-                    <div class="widget-header">
-                        <h5 class="widget-title">Campaign Performance</h5>
-                        <div class="widget-action">
-                            <div class="btn-group btn-group-sm" role="group">
-                                <button type="button" class="btn btn-outline-secondary active">Day</button>
-                                <button type="button" class="btn btn-outline-secondary">Week</button>
-                                <button type="button" class="btn btn-outline-secondary">Month</button>
-                            </div>
+            <div class="col-lg-5 mb-4">
+                <div class="card shadow-sm h-100">
+                    <div class="card-body">
+                        <div class="widget-header">
+                            <h5 class="widget-title">Insights & Recommendations</h5>
                         </div>
-                    </div>
-                    
-                    <div class="mb-3">
-                        <span class="filter-pill active">All Campaigns</span>
-                        <span class="filter-pill">Cold Outreach</span>
-                        <span class="filter-pill">Follow-ups</span>
-                        <span class="filter-pill">Meeting Requests</span>
-                    </div>
-                    
-                    <div class="chart-container" style="position: relative; height: 300px;">
-                        <canvas id="performanceChart"></canvas>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-4">
-            <div class="card shadow-sm dashboard-card h-100">
-                <div class="card-body">
-                    <div class="widget-header">
-                        <h5 class="widget-title">Response Rate</h5>
-                        <a href="#" class="widget-action text-decoration-none">Details <i class="bi bi-chevron-right"></i></a>
-                    </div>
-                    
-                    <div class="chart-container mb-3" style="position: relative; height: 180px;">
-                        <canvas id="responseRateChart"></canvas>
-                    </div>
-                    
-                    <div class="performance-metrics">
-                        <div class="performance-metric">
-                            <div class="metric-label">Open Rate</div>
-                            <div class="progress metric-progress">
-                                <div class="progress-bar bg-success" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <div class="metric-value ms-2">75%</div>
-                        </div>
-                        <div class="performance-metric">
-                            <div class="metric-label">Click Rate</div>
-                            <div class="progress metric-progress">
-                                <div class="progress-bar bg-info" role="progressbar" style="width: 42%" aria-valuenow="42" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <div class="metric-value ms-2">42%</div>
-                        </div>
-                        <div class="performance-metric">
-                            <div class="metric-label">Reply Rate</div>
-                            <div class="progress metric-progress">
-                                <div class="progress-bar bg-primary" role="progressbar" style="width: 31%" aria-valuenow="31" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <div class="metric-value ms-2">31%</div>
-                        </div>
-                        <div class="performance-metric">
-                            <div class="metric-label">Conversion</div>
-                            <div class="progress metric-progress">
-                                <div class="progress-bar bg-warning" role="progressbar" style="width: 15%" aria-valuenow="15" aria-valuemin="0" aria-valuemax="100"></div>
-                            </div>
-                            <div class="metric-value ms-2">15%</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Activity & Recommendations Section -->
-    <div class="row">
-        <div class="col-lg-7 mb-4">
-            <div class="card shadow-sm dashboard-card h-100">
-                <div class="card-body">
-                    <div class="widget-header">
-                        <h5 class="widget-title">Recent Activity</h5>
-                        <a href="#" class="widget-action text-decoration-none">View All <i class="bi bi-chevron-right"></i></a>
-                    </div>
-                    
-                    <div class="recent-activity">
-                        {% for activity in analytics.recent_activity %}
-                        <div class="recent-activity-item d-flex align-items-start">
-                            <div class="activity-icon">
-                                {% if activity.type == 'campaign' %}
-                                <i class="bi bi-envelope"></i>
-                                {% elif activity.type == 'template' %}
-                                <i class="bi bi-file-earmark-text"></i>
-                                {% elif activity.type == 'settings' %}
-                                <i class="bi bi-gear"></i>
-                                {% else %}
-                                <i class="bi bi-person-check"></i>
-                                {% endif %}
-                            </div>
-                            <div class="flex-grow-1">
-                                <div class="d-flex justify-content-between align-items-center mb-1">
-                                    <div class="fw-bold">{{ activity.title }}</div>
-                                    <div class="activity-time">{{ activity.time }}</div>
+                        <div class="list-group list-group-flush">
+                            <div class="list-group-item px-0 py-3 border-bottom">
+                                <div class="d-flex">
+                                    <i class="bi bi-lightbulb me-3 text-warning fs-4"></i>
+                                    <div>
+                                        <p class="mb-1 fw-medium">Improve Your Open Rates</p>
+                                        <p class="mb-0 small text-muted">Try using more personalized subject lines to increase engagement.</p>
+                                    </div>
                                 </div>
-                                <p class="mb-0">{{ activity.description }}</p>
                             </div>
                         </div>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-lg-5 mb-4">
-            <div class="card shadow-sm dashboard-card h-100">
-                <div class="card-body">
-                    <div class="widget-header">
-                        <h5 class="widget-title">Insights & Recommendations</h5>
-                    </div>
-                    
-                    <div class="alert alert-insight border-primary bg-light mb-3">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="bi bi-lightbulb text-primary fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="alert-heading">Improve Your Open Rates</h6>
-                                <p class="mb-0">Your open rates are 15% below industry average. Try personalizing your subject lines more effectively.</p>
-                                <a href="#" class="alert-link">See strategies <i class="bi bi-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-insight border-success bg-light mb-3">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="bi bi-graph-up-arrow text-success fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="alert-heading">Great Reply Rates!</h6>
-                                <p class="mb-0">Your "Tech Executive" segment has 45% reply rate, which is excellent. Consider expanding this approach to other segments.</p>
-                                <a href="#" class="alert-link">View segment details <i class="bi bi-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-insight border-warning bg-light mb-3">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="bi bi-exclamation-triangle text-warning fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="alert-heading">High Bounce Rate Detected</h6>
-                                <p class="mb-0">Your recent campaign had a 5.2% bounce rate. Consider verifying your email list before your next campaign.</p>
-                                <a href="#" class="alert-link">Email verification tools <i class="bi bi-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div class="alert alert-insight border-info bg-light">
-                        <div class="d-flex">
-                            <div class="me-3">
-                                <i class="bi bi-calendar-event text-info fs-4"></i>
-                            </div>
-                            <div>
-                                <h6 class="alert-heading">Best Time to Send</h6>
-                                <p class="mb-0">Based on your data, Tuesday and Thursday mornings have the highest open rates.</p>
-                                <a href="#" class="alert-link">See timing analysis <i class="bi bi-arrow-right"></i></a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Email Campaign Stats -->
-    <div class="row">
-        <div class="col-12">
-            <div class="card shadow-sm dashboard-card">
-                <div class="card-body">
-                    <div class="widget-header">
-                        <h5 class="widget-title">Recent Campaigns</h5>
-                        <a href="#" class="widget-action text-decoration-none">View All Campaigns <i class="bi bi-chevron-right"></i></a>
-                    </div>
-                    
-                    <div class="table-responsive">
-                        <table class="table table-hover">
-                            <thead>
-                                <tr>
-                                    <th>Campaign Name</th>
-                                    <th>Type</th>
-                                    <th>Sent</th>
-                                    <th>Date</th>
-                                    <th>Open Rate</th>
-                                    <th>Click Rate</th>
-                                    <th>Reply Rate</th>
-                                    <th>Status</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for campaign in analytics.campaigns %}
-                                <tr>
-                                    <td>{{ campaign.name }}</td>
-                                    <td>
-                                        {% if campaign.type == 'Cold Email' %}
-                                        <span class="badge bg-primary">{{ campaign.type }}</span>
-                                        {% elif campaign.type == 'Follow-Up' %}
-                                        <span class="badge bg-warning">{{ campaign.type }}</span>
-                                        {% elif campaign.type == 'Meeting Request' %}
-                                        <span class="badge bg-info">{{ campaign.type }}</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">{{ campaign.type }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>{{ campaign.emails_sent }}</td>
-                                    <td>{{ campaign.date }}</td>
-                                    <td>{{ campaign.open_rate }}%</td>
-                                    <td>{{ campaign.click_rate }}%</td>
-                                    <td>{{ campaign.reply_rate }}%</td>
-                                    <td>
-                                        {% if campaign.status == 'Active' %}
-                                        <span class="badge bg-success">{{ campaign.status }}</span>
-                                        {% else %}
-                                        <span class="badge bg-secondary">{{ campaign.status }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td><a href="#" class="btn btn-sm btn-outline-secondary">Details</a></td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
                     </div>
                 </div>
             </div>
@@ -462,36 +327,39 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        // Performance Chart
-        const performanceCtx = document.getElementById('performanceChart').getContext('2d');
-        const performanceChart = new Chart(performanceCtx, {
+        // Campaign Performance Chart
+        var campaignCtx = document.getElementById('campaignChart').getContext('2d');
+        var campaignChart = new Chart(campaignCtx, {
             type: 'line',
             data: {
                 labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
                 datasets: [
                     {
                         label: 'Open Rate',
-                        data: [65, 70, 72, 69, 75, 80, 76, 79, 78, 82, 78, 75],
-                        borderColor: '#28a745',
-                        backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                        data: [68, 72, 70, 72, 75, 72, 74, 74, 72, 70, 68, 69],
+                        borderColor: '#4ade80',
+                        backgroundColor: 'rgba(74, 222, 128, 0.1)',
+                        borderWidth: 2,
                         tension: 0.3,
-                        fill: true
+                        fill: false
                     },
                     {
                         label: 'Click Rate',
-                        data: [38, 42, 45, 40, 47, 50, 45, 48, 44, 49, 52, 42],
-                        borderColor: '#17a2b8',
-                        backgroundColor: 'rgba(23, 162, 184, 0.1)',
+                        data: [35, 38, 40, 42, 45, 42, 40, 42, 38, 36, 35, 34],
+                        borderColor: '#38bdf8',
+                        backgroundColor: 'rgba(56, 189, 248, 0.1)',
+                        borderWidth: 2,
                         tension: 0.3,
-                        fill: true
+                        fill: false
                     },
                     {
                         label: 'Reply Rate',
-                        data: [28, 31, 33, 30, 32, 35, 34, 36, 32, 38, 35, 31],
-                        borderColor: '#0d6efd',
-                        backgroundColor: 'rgba(13, 110, 253, 0.1)',
+                        data: [25, 28, 30, 28, 30, 32, 30, 32, 30, 28, 26, 25],
+                        borderColor: '#818cf8',
+                        backgroundColor: 'rgba(129, 140, 248, 0.1)',
+                        borderWidth: 2,
                         tension: 0.3,
-                        fill: true
+                        fill: false
                     }
                 ]
             },
@@ -501,19 +369,26 @@
                 plugins: {
                     legend: {
                         position: 'top',
+                        align: 'start',
+                        labels: {
+                            boxWidth: 15,
+                            usePointStyle: true,
+                            pointStyle: 'circle'
+                        }
                     },
                     tooltip: {
                         mode: 'index',
                         intersect: false,
-                    }
-                },
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        ticks: {
-                            callback: function(value) {
-                                return value + '%';
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.dataset.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed.y !== null) {
+                                    label += context.parsed.y + '%';
+                                }
+                                return label;
                             }
                         }
                     }
@@ -522,87 +397,74 @@
                     mode: 'nearest',
                     axis: 'x',
                     intersect: false
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100,
+                        ticks: {
+                            stepSize: 20,
+                            callback: function(value) {
+                                return value + '%';
+                            }
+                        },
+                        grid: {
+                            drawBorder: false,
+                            color: 'rgba(0, 0, 0, 0.05)'
+                        }
+                    },
+                    x: {
+                        grid: {
+                            drawBorder: false,
+                            display: false
+                        }
+                    }
                 }
             }
         });
-        
+
         // Response Rate Chart
-        const responseRateCtx = document.getElementById('responseRateChart').getContext('2d');
-        const responseRateChart = new Chart(responseRateCtx, {
+        var responseCtx = document.getElementById('responseChart').getContext('2d');
+        var responseChart = new Chart(responseCtx, {
             type: 'doughnut',
             data: {
-                labels: ['Opened', 'Clicked', 'Replied', 'Converted', 'No Action'],
+                labels: ['Opened', 'Clicked', 'Replied', 'Converted'],
                 datasets: [{
-                    data: [45, 25, 15, 10, 5],
+                    data: [75, 42, 31, 15],
                     backgroundColor: [
-                        '#28a745',
-                        '#17a2b8',
-                        '#0d6efd',
-                        '#ffc107',
-                        '#e9ecef'
+                        '#4ade80',
+                        '#38bdf8',
+                        '#818cf8',
+                        '#fbbf24'
                     ],
-                    borderWidth: 1
+                    borderWidth: 0,
+                    hoverOffset: 5
                 }]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
+                cutout: '70%',
                 plugins: {
                     legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 12
+                        display: false
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let label = context.label || '';
+                                if (label) {
+                                    label += ': ';
+                                }
+                                if (context.parsed !== null) {
+                                    label += context.parsed + '%';
+                                }
+                                return label;
+                            }
                         }
                     }
-                },
-                cutout: '65%'
+                }
             }
-        });
-        
-        // Initialize refresh button
-        document.getElementById('refreshDashboard').addEventListener('click', function() {
-            this.classList.add('disabled');
-            this.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Refreshing...';
-            
-            // Simulate refresh delay
-            setTimeout(() => {
-                this.classList.remove('disabled');
-                this.innerHTML = '<i class="bi bi-arrow-clockwise me-1"></i>Refresh';
-                
-                // Show a toast notification
-                const toastHTML = `
-                <div class="position-fixed bottom-0 end-0 p-3" style="z-index: 1050">
-                    <div class="toast show" role="alert" aria-live="assertive" aria-atomic="true">
-                        <div class="toast-header">
-                            <i class="bi bi-check-circle-fill text-success me-2"></i>
-                            <strong class="me-auto">Dashboard Updated</strong>
-                            <small>Just now</small>
-                            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-                        </div>
-                        <div class="toast-body">
-                            Your dashboard data has been refreshed with the latest information.
-                        </div>
-                    </div>
-                </div>`;
-                
-                const toastContainer = document.createElement('div');
-                toastContainer.innerHTML = toastHTML;
-                document.body.appendChild(toastContainer);
-                
-                // Auto-remove the toast after 3 seconds
-                setTimeout(() => {
-                    document.body.removeChild(toastContainer);
-                }, 3000);
-                
-            }, 1500);
-        });
-        
-        // Make filter pills interactive
-        document.querySelectorAll('.filter-pill').forEach(pill => {
-            pill.addEventListener('click', function() {
-                document.querySelectorAll('.filter-pill').forEach(p => p.classList.remove('active'));
-                this.classList.add('active');
-            });
         });
     });
 </script>
