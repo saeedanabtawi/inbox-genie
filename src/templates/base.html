@@ -58,6 +58,7 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('subscription') }}">Subscription</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
                         </ul>
@@ -68,6 +69,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path == '/about' %}active{% endif %}" href="{{ url_for('about') }}">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {% if request.path == '/pricing' %}active{% endif %}" href="{{ url_for('pricing') }}">Pricing</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {% if request.path.startswith('/auth/login') %}active{% endif %}" href="{{ url_for('auth.login') }}">Login</a>
@@ -109,6 +113,7 @@
                         <li><a href="{{ url_for('auth.login') }}" class="text-white">Login</a></li>
                         <li><a href="{{ url_for('auth.register') }}" class="text-white">Register</a></li>
                         {% endif %}
+                        <li><a href="{{ url_for('pricing') }}" class="text-white">Pricing</a></li>
                     </ul>
                 </div>
                 <div class="col-md-3">

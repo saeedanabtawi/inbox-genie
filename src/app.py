@@ -4,6 +4,8 @@ import io
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user, LoginManager
 import secrets
+import datetime
+from datetime import timedelta
 
 # Load environment variables
 try:
@@ -532,8 +534,44 @@ def process_bulk_emails():
     csv_data = data.get('csv_data', '')
     template_type = data.get('template', 'cold_email')
     
+    # Check if user can send bulk emails based on subscription
+    if not current_user.can_send_bulk_emails():
+        return jsonify({
+            'success': False,
+            'error': 'Your current plan does not support bulk email generation. Please upgrade your subscription.',
+            'emails': [],
+            'errors': ['Subscription plan limitation: Free tier does not include bulk emails.'],
+            'total_recipients': 0,
+            'successful_recipients': 0
+        })
+    
+    # Parse the CSV to count how many emails will be generated
+    try:
+        temp_reader = csv.reader(io.StringIO(csv_data))
+        email_count = sum(1 for row in temp_reader) - 1  # Subtract 1 for header row
+    except:
+        email_count = 0
+    
+    # Check if user has enough remaining emails in their plan
+    remaining_emails = current_user.get_remaining_emails()
+    if remaining_emails != float('inf') and email_count > remaining_emails:
+        return jsonify({
+            'success': False,
+            'error': f'You only have {remaining_emails} emails remaining in your plan, but you are trying to send {email_count}.',
+            'emails': [],
+            'errors': [f'Subscription plan limitation: Not enough emails remaining ({remaining_emails}/{current_user.get_monthly_email_limit()}).'],
+            'total_recipients': 0,
+            'successful_recipients': 0
+        })
+    
     # Process CSV and generate emails with the selected template
     result = EmailGenerator.process_csv_data(csv_data, template_type)
+    
+    # If successful, record the bulk campaign and usage
+    if result.get('successful_recipients', 0) > 0:
+        current_user.record_bulk_campaign(result['successful_recipients'])
+        # In a real app, you would commit these changes to the database
+    
     return jsonify(result)
 
 @app.route('/auth/login')
@@ -571,6 +609,194 @@ def get_template(template_type):
     else:
         template = EmailGenerator.get_default_template(template_type)
         return jsonify({'content': template})
+
+@app.route('/pricing')
+def pricing():
+    """Render the pricing page - public access"""
+    # Show different UI elements based on authentication status
+    user_tier = "Free"
+    email_usage = 0
+    bulk_campaigns = 0
+    
+    if current_user.is_authenticated:
+        # In a real app, get this data from the user's subscription record
+        user_tier = getattr(current_user, 'subscription_tier', "Free")
+        email_usage = 145  # Example usage data
+        bulk_campaigns = 12  # Example usage data
+    
+    plans = {
+        "free": {
+            "name": "Free",
+            "price_monthly": 0,
+            "price_annual": 0,
+            "emails_per_month": 1,
+            "features": ["Single email personalization", "Basic templates", "Email preview"],
+            "unavailable": ["Bulk email generation", "Custom templates", "Advanced analytics"]
+        },
+        "basic": {
+            "name": "Basic",
+            "price_monthly": 19,
+            "price_annual": 15,
+            "emails_per_month": 100,
+            "features": ["Single email personalization", "Up to 100 bulk emails/month", 
+                        "All templates", "Basic analytics"],
+            "unavailable": ["Custom templates", "Priority support"]
+        },
+        "professional": {
+            "name": "Professional",
+            "price_monthly": 49,
+            "price_annual": 39,
+            "emails_per_month": 1000,
+            "features": ["Single email personalization", "Up to 1,000 bulk emails/month", 
+                        "Advanced templates", "Custom templates", "Advanced analytics", "Email scheduling"],
+            "unavailable": []
+        },
+        "enterprise": {
+            "name": "Enterprise",
+            "price_monthly": 99,
+            "price_annual": 79,
+            "emails_per_month": 0,  # Unlimited
+            "features": ["Unlimited email personalization", "Unlimited bulk emails", 
+                        "All templates + priority access", "Premium analytics", "Advanced customization", 
+                        "Priority support 24/7"],
+            "unavailable": []
+        }
+    }
+    
+    return render_template('pricing.html', user_tier=user_tier, 
+                          email_usage=email_usage, bulk_campaigns=bulk_campaigns, 
+                          plans=plans)
+
+@app.route('/subscription')
+@login_required
+def subscription():
+    """Render the subscription management page"""
+    # In a real app, these would be fetched from the database
+    custom_templates_count = 5  # Example count
+    
+    # Reuse the plans data from the pricing page
+    plans = {
+        "free": {
+            "name": "Free",
+            "price_monthly": 0,
+            "price_annual": 0,
+            "emails_per_month": 1,
+            "features": ["Single email personalization", "Basic templates", "Email preview"],
+            "unavailable": ["Bulk email generation", "Custom templates", "Advanced analytics"]
+        },
+        "basic": {
+            "name": "Basic",
+            "price_monthly": 19,
+            "price_annual": 15,
+            "emails_per_month": 100,
+            "features": ["Single email personalization", "Up to 100 bulk emails/month", 
+                        "All templates", "Basic analytics"],
+            "unavailable": ["Custom templates", "Priority support"]
+        },
+        "professional": {
+            "name": "Professional",
+            "price_monthly": 49,
+            "price_annual": 39,
+            "emails_per_month": 1000,
+            "features": ["Single email personalization", "Up to 1,000 bulk emails/month", 
+                        "Advanced templates", "Custom templates", "Advanced analytics", "Email scheduling"],
+            "unavailable": []
+        },
+        "enterprise": {
+            "name": "Enterprise",
+            "price_monthly": 99,
+            "price_annual": 79,
+            "emails_per_month": 0,  # Unlimited
+            "features": ["Unlimited email personalization", "Unlimited bulk emails", 
+                        "All templates + priority access", "Premium analytics", "Advanced customization", 
+                        "Priority support 24/7"],
+            "unavailable": []
+        }
+    }
+    
+    return render_template('subscription.html', user=current_user, 
+                           custom_templates_count=custom_templates_count, plans=plans)
+
+@app.route('/upgrade-subscription', methods=['POST'])
+@login_required
+def upgrade_subscription():
+    """Handle subscription upgrades"""
+    if request.method == 'POST':
+        plan = request.form.get('plan')
+        billing_cycle = request.form.get('billing_cycle', 'monthly')
+        
+        # In a real app, you would:
+        # 1. Verify payment information
+        # 2. Process the payment
+        # 3. Update the subscription in the database
+        
+        # Maps plan keys to subscription tier names
+        plan_tiers = {
+            'free': 'Free',
+            'basic': 'Basic',
+            'professional': 'Professional',
+            'enterprise': 'Enterprise'
+        }
+        
+        if plan in plan_tiers:
+            # Update user's subscription information
+            current_user.subscription_tier = plan_tiers[plan]
+            current_user.is_annual_billing = (billing_cycle == 'annual')
+            
+            # Set subscription dates
+            now = datetime.datetime.utcnow()
+            current_user.subscription_start_date = now
+            
+            # Set end date based on billing cycle
+            if billing_cycle == 'annual':
+                current_user.subscription_end_date = now + datetime.timedelta(days=365)
+            else:
+                current_user.subscription_end_date = now + datetime.timedelta(days=30)
+            
+            # In a real app, you would call db.session.commit() here
+            flash(f'Successfully upgraded to {plan_tiers[plan]} plan!', 'success')
+        else:
+            flash('Invalid plan selected', 'danger')
+            
+    return redirect(url_for('subscription'))
+
+@app.route('/update-billing-cycle', methods=['POST'])
+@login_required
+def update_billing_cycle():
+    """Update the billing cycle (monthly/annual)"""
+    if request.method == 'POST':
+        billing_cycle = request.form.get('billing_cycle', 'monthly')
+        
+        # Update the user's billing preference
+        current_user.is_annual_billing = (billing_cycle == 'annual')
+        
+        # Update subscription end date based on new billing cycle
+        now = datetime.datetime.utcnow()
+        if billing_cycle == 'annual':
+            current_user.subscription_end_date = now + datetime.timedelta(days=365)
+            flash('Updated to annual billing with 20% savings!', 'success')
+        else:
+            current_user.subscription_end_date = now + datetime.timedelta(days=30)
+            flash('Updated to monthly billing', 'success')
+        
+        # In a real app, you would call db.session.commit() here
+        
+    return redirect(url_for('subscription'))
+
+@app.route('/downgrade-to-free', methods=['POST'])
+@login_required
+def downgrade_to_free():
+    """Downgrade subscription to the free tier"""
+    if request.method == 'POST':
+        # Update user's subscription information
+        current_user.subscription_tier = 'Free'
+        current_user.subscription_end_date = None
+        current_user.subscription_start_date = None
+        
+        # In a real app, you would call db.session.commit() here
+        flash('Your subscription has been canceled. You can still use the free features.', 'info')
+        
+    return redirect(url_for('subscription'))
 
 # Create error templates directory if it doesn't exist
 @app.before_first_request

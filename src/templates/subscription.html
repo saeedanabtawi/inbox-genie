@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Subscription | InboxGenie{% endblock %}
+
+{% block extra_css %}
+<style>
+    .plan-card {
+        border-radius: 10px;
+        transition: transform 0.3s, box-shadow 0.3s;
+        height: 100%;
+    }
+    
+    .plan-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+    }
+    
+    .plan-card.current {
+        border: 2px solid #0d6efd;
+    }
+    
+    .plan-card .card-header {
+        border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+    }
+    
+    .current-badge {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 2;
+    }
+    
+    .usage-container {
+        background-color: #f8f9fa;
+        border-radius: 10px;
+        padding: 2rem;
+        margin-bottom: 2rem;
+    }
+    
+    .usage-progress {
+        height: 10px;
+        border-radius: 5px;
+    }
+    
+    .usage-progress-container {
+        margin-top: 0.5rem;
+        margin-bottom: 0.5rem;
+    }
+    
+    .usage-labels {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.8rem;
+        color: #6c757d;
+    }
+    
+    .payment-history-table {
+        font-size: 0.9rem;
+    }
+    
+    .payment-history-table thead th {
+        background-color: #f8f9fa;
+        font-weight: 600;
+    }
+    
+    .billing-card {
+        border: 1px solid rgba(0, 0, 0, 0.1);
+        border-radius: 8px;
+        padding: 1rem;
+    }
+    
+    .change-plan-info {
+        border-radius: 10px;
+        background-color: #f8f9fa;
+        padding: 1.5rem;
+        margin-top: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <h1 class="mb-4">Manage Subscription</h1>
+    
+    <!-- Current Plan & Usage -->
+    <div class="usage-container">
+        <div class="row">
+            <div class="col-md-6">
+                <h4>Your Current Plan</h4>
+                <div class="d-flex align-items-center mb-3">
+                    <div class="badge bg-primary p-2 fs-6 me-2">{{ user.subscription_tier }}</div>
+                    <div class="text-muted">
+                        {% if user.is_annual_billing %}
+                        Annual billing (save 20%)
+                        {% else %}
+                        Monthly billing
+                        {% endif %}
+                    </div>
+                </div>
+                
+                <p class="mb-1">
+                    {% if user.subscription_end_date %}
+                    Your plan renews on <strong>{{ user.subscription_end_date.strftime('%B %d, %Y') }}</strong>
+                    {% else %}
+                    Free plan - no renewal date
+                    {% endif %}
+                </p>
+            </div>
+            
+            <div class="col-md-6">
+                <h4>Monthly Usage</h4>
+                <p class="mb-1">
+                    <strong>{{ user.current_month_usage }}</strong> of 
+                    {% if user.has_unlimited_emails() %}
+                    <strong>Unlimited</strong>
+                    {% else %}
+                    <strong>{{ user.get_monthly_email_limit() }}</strong>
+                    {% endif %}
+                    personalized emails used this month
+                </p>
+                
+                <!-- Usage progress bar -->
+                {% if not user.has_unlimited_emails() %}
+                <div class="usage-progress-container">
+                    {% set usage_percentage = (user.current_month_usage / user.get_monthly_email_limit() * 100)|round|int %}
+                    <div class="progress usage-progress">
+                        <div class="progress-bar 
+                             {% if usage_percentage > 90 %}bg-danger{% elif usage_percentage > 70 %}bg-warning{% else %}bg-success{% endif %}" 
+                             role="progressbar" 
+                             style="width: {{ usage_percentage }}%" 
+                             aria-valuenow="{{ usage_percentage }}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100"></div>
+                    </div>
+                    <div class="usage-labels">
+                        <div>0</div>
+                        <div>{{ user.get_monthly_email_limit() }}</div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Usage stats -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Total Emails</h5>
+                        <div class="display-5 mb-3">{{ user.emails_generated }}</div>
+                        <p class="text-muted">Personalized emails generated</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Bulk Campaigns</h5>
+                        <div class="display-5 mb-3">{{ user.bulk_campaigns }}</div>
+                        <p class="text-muted">Campaigns completed</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-md-4">
+                <div class="card h-100">
+                    <div class="card-body text-center">
+                        <h5 class="card-title">Custom Templates</h5>
+                        <div class="display-5 mb-3">{{ custom_templates_count }}</div>
+                        <p class="text-muted">Templates created</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Available Plans -->
+    <h3 class="mb-3">Available Plans</h3>
+    
+    <div class="row mb-4">
+        {% for plan_key, plan in plans.items() %}
+        <div class="col-md-6 col-lg-3 mb-4">
+            <div class="card plan-card {% if user.subscription_tier == plan.name %}current{% endif %}">
+                {% if user.subscription_tier == plan.name %}
+                <span class="badge bg-primary current-badge">Current Plan</span>
+                {% endif %}
+                
+                <div class="card-header {% if plan.name == 'Professional' %}bg-primary text-white{% else %}bg-light{% endif %}">
+                    <h5 class="mb-0">{{ plan.name }}</h5>
+                </div>
+                
+                <div class="card-body">
+                    <div class="display-6 mb-2">
+                        ${{ plan.price_monthly if not user.is_annual_billing else plan.price_annual }}
+                        <small class="text-muted">/mo</small>
+                    </div>
+                    
+                    {% if plan.emails_per_month == 0 %}
+                    <p class="text-muted mb-3">Unlimited emails</p>
+                    {% else %}
+                    <p class="text-muted mb-3">{{ plan.emails_per_month }} emails/month</p>
+                    {% endif %}
+                    
+                    <ul class="list-unstyled">
+                        {% for feature in plan.features %}
+                        <li class="mb-2"><i class="bi bi-check-circle-fill text-success me-2"></i> {{ feature }}</li>
+                        {% endfor %}
+                    </ul>
+                    
+                    {% if user.subscription_tier == plan.name %}
+                    <button class="btn btn-outline-secondary w-100 mt-3" disabled>Current Plan</button>
+                    {% elif plan.name == 'Free' %}
+                    <form action="{{ url_for('downgrade_to_free') }}" method="post">
+                        <button type="submit" class="btn btn-outline-danger w-100 mt-3">Downgrade</button>
+                    </form>
+                    {% else %}
+                    <form action="{{ url_for('upgrade_subscription') }}" method="post">
+                        <input type="hidden" name="plan" value="{{ plan_key }}">
+                        <input type="hidden" name="billing_cycle" value="{% if user.is_annual_billing %}annual{% else %}monthly{% endif %}">
+                        <button type="submit" class="btn btn-primary w-100 mt-3">
+                            {% if plan_key > user.subscription_tier|lower %}
+                            Upgrade
+                            {% else %}
+                            Downgrade
+                            {% endif %}
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Billing Settings -->
+    <div class="row">
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Billing Settings</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.subscription_tier != 'Free' %}
+                    <h6 class="mb-3">Payment Method</h6>
+                    <div class="billing-card mb-4">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-credit-card fs-3 me-3"></i>
+                            <div>
+                                <div>Visa ending in 4242</div>
+                                <div class="text-muted small">Expires 12/2025</div>
+                            </div>
+                            <div class="ms-auto">
+                                <button class="btn btn-sm btn-outline-secondary">Edit</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="mb-3">Billing Cycle</h6>
+                    <form action="{{ url_for('update_billing_cycle') }}" method="post" class="mb-4">
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="radio" name="billing_cycle" id="monthlyBilling" value="monthly" {% if not user.is_annual_billing %}checked{% endif %}>
+                            <label class="form-check-label" for="monthlyBilling">
+                                Monthly Billing
+                            </label>
+                        </div>
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="radio" name="billing_cycle" id="annualBilling" value="annual" {% if user.is_annual_billing %}checked{% endif %}>
+                            <label class="form-check-label" for="annualBilling">
+                                Annual Billing <span class="badge bg-success">Save 20%</span>
+                            </label>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Update Billing Cycle</button>
+                    </form>
+                    
+                    <h6 class="mb-3">Billing Address</h6>
+                    <address>
+                        John Doe<br>
+                        123 Main St<br>
+                        San Francisco, CA 94105<br>
+                        United States
+                    </address>
+                    <button class="btn btn-sm btn-outline-secondary">Edit Address</button>
+                    {% else %}
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">You're on the Free Plan</h6>
+                        <p class="mb-0">Upgrade to a paid plan to access advanced features like bulk email personalization, custom templates, and analytics.</p>
+                    </div>
+                    <a href="{{ url_for('pricing') }}" class="btn btn-primary">View Plans</a>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0">Payment History</h5>
+                </div>
+                <div class="card-body">
+                    {% if user.subscription_tier != 'Free' %}
+                    <div class="table-responsive">
+                        <table class="table table-hover payment-history-table">
+                            <thead>
+                                <tr>
+                                    <th>Date</th>
+                                    <th>Description</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Mar 15, 2025</td>
+                                    <td>{{ user.subscription_tier }} Plan - Monthly</td>
+                                    <td>${{ plans[user.subscription_tier|lower].price_monthly if not user.is_annual_billing else plans[user.subscription_tier|lower].price_annual }}</td>
+                                    <td><span class="badge bg-success">Paid</span></td>
+                                    <td><a href="#" class="btn btn-sm btn-outline-secondary">Receipt</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Feb 15, 2025</td>
+                                    <td>{{ user.subscription_tier }} Plan - Monthly</td>
+                                    <td>${{ plans[user.subscription_tier|lower].price_monthly if not user.is_annual_billing else plans[user.subscription_tier|lower].price_annual }}</td>
+                                    <td><span class="badge bg-success">Paid</span></td>
+                                    <td><a href="#" class="btn btn-sm btn-outline-secondary">Receipt</a></td>
+                                </tr>
+                                <tr>
+                                    <td>Jan 15, 2025</td>
+                                    <td>{{ user.subscription_tier }} Plan - Monthly</td>
+                                    <td>${{ plans[user.subscription_tier|lower].price_monthly if not user.is_annual_billing else plans[user.subscription_tier|lower].price_annual }}</td>
+                                    <td><span class="badge bg-success">Paid</span></td>
+                                    <td><a href="#" class="btn btn-sm btn-outline-secondary">Receipt</a></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-secondary">
+                        <p class="mb-0">No payment history available for the Free plan.</p>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    {% if user.subscription_tier != 'Free' %}
+    <div class="change-plan-info">
+        <h5>Changing Your Plan</h5>
+        <p>When changing your subscription plan:</p>
+        <ul>
+            <li><strong>Upgrading:</strong> You'll be charged the prorated difference immediately, and the new features will be available right away.</li>
+            <li><strong>Downgrading:</strong> Your current plan will remain active until the end of your billing cycle, then you'll be moved to the new plan.</li>
+            <li><strong>Canceling:</strong> You can cancel at any time by downgrading to the Free plan. Your paid features will remain active until the end of your billing cycle.</li>
+        </ul>
+        <p class="mb-0"><a href="#">Contact our support team</a> if you have any questions about your subscription.</p>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
