@@ -19,10 +19,10 @@ class User(UserMixin, db.Model):
     
     # Fields for email verification
     email_confirmed = db.Column(db.Boolean, default=False)
-    email_confirm_token = db.Column(db.String(32))
+    email_confirm_token = db.Column(db.String(128))
     
     # Fields for password reset
-    reset_token = db.Column(db.String(32))
+    reset_token = db.Column(db.String(128))
     reset_token_expiration = db.Column(db.DateTime)
     
     # Fields for OAuth login
