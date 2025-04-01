@@ -91,7 +91,7 @@
                     
                     <div class="mb-3">
                         <label for="csvData" class="form-label">Paste CSV Data</label>
-                        <textarea class="form-control csv-input" id="csvData" rows="6" placeholder="name,role,company,industry,recent_activity,industry_news,pain_points&#10;John Doe,CEO,Acme Corp,Technology,recent TechCrunch interview,Series B funding,scaling operations"></textarea>
+                        <textarea class="form-control csv-input" id="csvData" rows="6" placeholder="name,role,company,email,industry,recent_activity,industry_news,pain_points&#10;John Doe,CEO,Acme Corp,john.doe@example.com,Technology,recent TechCrunch interview,Series B funding,scaling operations"></textarea>
                     </div>
                     
                     <div class="alert alert-info">
@@ -101,6 +101,7 @@
                             <li><strong>name</strong> - Recipient's name</li>
                             <li><strong>role</strong> - Recipient's job title</li>
                             <li><strong>company</strong> - Recipient's company name</li>
+                            <li><strong>email</strong> - Recipient's email address</li>
                         </ul>
                         <p class="mb-0">Optional columns include: industry, recent_activity, industry_news, pain_points</p>
                     </div>
@@ -267,15 +268,15 @@
     const templates = {
         cold_email: {
             content: "",
-            required: ['name', 'role', 'company']
+            required: ['name', 'role', 'company', 'email']
         },
         follow_up: {
             content: "",
-            required: ['name', 'company', 'pain_points']
+            required: ['name', 'company', 'email', 'pain_points']
         },
         meeting_request: {
             content: "",
-            required: ['name', 'company', 'pain_points']
+            required: ['name', 'company', 'email', 'pain_points']
         }
     };
 

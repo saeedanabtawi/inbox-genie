@@ -4,9 +4,10 @@ import io
 from flask import Flask, render_template, request, jsonify, redirect, url_for, flash
 from flask_login import login_required, current_user, LoginManager
 import secrets
-import datetime
-from datetime import timedelta
+import datetime as dt
+from datetime import datetime, timedelta
 from sqlalchemy import func
+from .email_service import EmailService
 
 # Load environment variables
 try:
@@ -65,6 +66,7 @@ class EmailGenerator:
         recent_activity = recipient_data.get('recent_activity', '')
         industry_news = recipient_data.get('industry_news', '')
         pain_points = recipient_data.get('pain_points', '')
+        email = recipient_data.get('email', '')
         
         # Generate a personalized opening based on available information
         if recent_activity:
@@ -248,7 +250,7 @@ Looking forward to your response,
             headers = csv_reader.fieldnames
             
             # Validate required fields
-            required_fields = ['name', 'role', 'company']
+            required_fields = ['name', 'role', 'company', 'email']
             missing_fields = [field for field in required_fields if field.lower() not in [h.lower() for h in headers]]
             
             if missing_fields:
@@ -446,103 +448,128 @@ def bulk():
 @app.route('/send-bulk-emails', methods=['POST'])
 @login_required
 def send_bulk_emails():
-    if not current_user.is_authenticated:
-        return jsonify({"success": False, "error": "Authentication required"}), 401
+    """Send multiple emails using configured SMTP server"""
+    try:
+        if not current_user.is_authenticated:
+            return jsonify({"success": False, "error": "Authentication required"}), 401
 
-    data = request.json
-    if not data or 'emails' not in data or not data['emails']:
-        return jsonify({"success": False, "error": "No emails provided"}), 400
-    
-    # Check if the user has SMTP configuration
-    smtp_config_id = data.get('smtp_config_id')
-    if not smtp_config_id:
-        return jsonify({"success": False, "error": "No SMTP configuration selected"}), 400
-    
-    smtp_config = SMTPConfig.query.filter_by(id=smtp_config_id, user_id=current_user.id).first()
-    if not smtp_config:
-        return jsonify({"success": False, "error": "Invalid SMTP configuration"}), 400
-    
-    # Check if the user has reached the email limit
-    email_count = EmailHistory.query.filter_by(user_id=current_user.id, sent_at=func.date(func.now())).count()
-    email_limit = current_user.get_monthly_email_limit()
-    emails_to_send_count = len(data['emails'])
-    
-    if email_count + emails_to_send_count > email_limit and email_limit != float('inf'):
-        return jsonify({
-            "success": False, 
-            "error": f"You have reached your daily email limit ({email_limit}). Please upgrade your subscription to send more emails."
-        }), 403
-    
-    # Create an email service instance
-    email_service = EmailService(
-        smtp_server=smtp_config.smtp_server,
-        port=smtp_config.port,
-        username=smtp_config.username,
-        password=smtp_config.password,
-        use_tls=smtp_config.use_tls,
-        sender_email=smtp_config.email,
-        sender_name=smtp_config.name
-    )
-    
-    # Process each email
-    success_count = 0
-    failure_count = 0
-    error_messages = []
-    
-    for email_data in data['emails']:
-        recipient_email = email_data.get('recipient')
-        subject = email_data.get('subject', "No Subject")
-        content = email_data.get('content')
+        data = request.json
+        if not data or 'emails' not in data or not data['emails']:
+            return jsonify({"success": False, "error": "No emails provided"}), 400
         
-        if not recipient_email or not content:
-            failure_count += 1
-            error_messages.append(f"Missing data for email to {recipient_email}")
-            continue
-            
-        try:
-            # Send the email
-            email_service.send_email(recipient_email, subject, content)
-            
-            # Record the email history
-            email_history = EmailHistory(
-                user_id=current_user.id,
-                smtp_config_id=smtp_config.id,
-                recipient=recipient_email,
-                subject=subject,
-                content=content,
-                status='sent',
-                sent_at=datetime.now()
-            )
-            db.session.add(email_history)
-            success_count += 1
-            
-        except Exception as e:
-            failure_count += 1
-            error_message = str(e)
-            error_messages.append(f"Failed to send email to {recipient_email}: {error_message}")
-            
-            # Record the failed email
-            email_history = EmailHistory(
-                user_id=current_user.id,
-                smtp_config_id=smtp_config.id,
-                recipient=recipient_email,
-                subject=subject,
-                content=content,
-                status='failed',
-                error_message=error_message,
-                sent_at=datetime.now()
-            )
-            db.session.add(email_history)
-    
-    # Commit all the email history records at once
-    db.session.commit()
-    
-    return jsonify({
-        "success": True,
-        "sent": success_count,
-        "failed": failure_count,
-        "errors": error_messages if failure_count > 0 else None
-    })
+        # Check if the user has SMTP configuration
+        smtp_config_id = data.get('smtp_config_id')
+        if not smtp_config_id:
+            return jsonify({"success": False, "error": "No SMTP configuration selected"}), 400
+        
+        smtp_config = SMTPConfig.query.filter_by(id=smtp_config_id, user_id=current_user.id).first()
+        if not smtp_config:
+            return jsonify({"success": False, "error": "Invalid SMTP configuration"}), 400
+        
+        # Check if the user has reached the email limit
+        email_count = EmailHistory.query.filter_by(user_id=current_user.id, sent_at=func.date(func.now())).count()
+        email_limit = current_user.get_monthly_email_limit()
+        emails_to_send_count = len(data['emails'])
+        
+        if email_count + emails_to_send_count > email_limit and email_limit != float('inf'):
+            return jsonify({
+                "success": False, 
+                "error": f"You have reached your daily email limit ({email_limit}). Please upgrade your subscription to send more emails."
+            }), 403
+        
+        # Prepare SMTP configuration dict
+        smtp_config_dict = {
+            'server': smtp_config.server,
+            'port': smtp_config.port,
+            'username': smtp_config.username,
+            'password': smtp_config.password,
+            'use_tls': smtp_config.use_tls,
+            'email': smtp_config.email,
+            'name': smtp_config.display_name
+        }
+        
+        # Debug information
+        print(f"SMTP Config: {smtp_config_dict}")
+        print(f"Emails to send: {len(data['emails'])}")
+        
+        # Process each email
+        success_count = 0
+        failure_count = 0
+        error_messages = []
+        
+        for email_data in data['emails']:
+            try:
+                recipient_email = email_data.get('recipient')
+                subject = email_data.get('subject', "No Subject")
+                content = email_data.get('content')
+                
+                if not recipient_email or not content:
+                    failure_count += 1
+                    error_messages.append(f"Missing data for email to {recipient_email}")
+                    continue
+                    
+                # Send the email using the static method
+                success, message = EmailService.send_email(
+                    recipient_email=recipient_email,
+                    subject=subject,
+                    html_content=content,
+                    smtp_config=smtp_config_dict
+                )
+                
+                print(f"Email send attempt to {recipient_email}: {success}, {message}")
+                
+                if not success:
+                    raise Exception(message)
+                
+                # Record the email history
+                email_history = EmailHistory(
+                    user_id=current_user.id,
+                    smtp_config_id=smtp_config.id,
+                    recipient=recipient_email,
+                    subject=subject,
+                    content=content,
+                    status='sent',
+                    sent_at=datetime.now()
+                )
+                db.session.add(email_history)
+                success_count += 1
+                
+            except Exception as e:
+                failure_count += 1
+                error_message = str(e)
+                error_messages.append(f"Failed to send email to {recipient_email}: {error_message}")
+                
+                # Record the failed email
+                email_history = EmailHistory(
+                    user_id=current_user.id,
+                    smtp_config_id=smtp_config.id,
+                    recipient=recipient_email,
+                    subject=subject,
+                    content=content,
+                    status='failed',
+                    error_message=error_message,
+                    sent_at=datetime.now()
+                )
+                db.session.add(email_history)
+        
+        # Commit all the email history records at once
+        db.session.commit()
+        
+        return jsonify({
+            "success": True,
+            "sent": success_count,
+            "failed": failure_count,
+            "errors": error_messages if failure_count > 0 else None
+        })
+    except Exception as e:
+        # Catch any unexpected errors and return as JSON
+        print(f"Error in send_bulk_emails: {str(e)}")
+        return jsonify({
+            "success": False,
+            "error": f"Server error: {str(e)}",
+            "sent": 0,
+            "failed": 0
+        }), 500
 
 @app.route('/templates')
 @login_required
@@ -842,14 +869,14 @@ def upgrade_subscription():
             current_user.is_annual_billing = (billing_cycle == 'annual')
             
             # Set subscription dates
-            now = datetime.datetime.utcnow()
+            now = datetime.now()
             current_user.subscription_start_date = now
             
             # Set end date based on billing cycle
             if billing_cycle == 'annual':
-                current_user.subscription_end_date = now + datetime.timedelta(days=365)
+                current_user.subscription_end_date = now + dt.timedelta(days=365)
             else:
-                current_user.subscription_end_date = now + datetime.timedelta(days=30)
+                current_user.subscription_end_date = now + dt.timedelta(days=30)
             
             # Save changes to the database
             db.session.commit()
@@ -871,12 +898,12 @@ def update_billing_cycle():
         current_user.is_annual_billing = is_annual
         
         # Update subscription end date based on new billing cycle
-        now = datetime.datetime.utcnow()
+        now = datetime.now()
         if is_annual:
-            current_user.subscription_end_date = now + datetime.timedelta(days=365)
+            current_user.subscription_end_date = now + dt.timedelta(days=365)
             savings = "20%"
         else:
-            current_user.subscription_end_date = now + datetime.timedelta(days=30)
+            current_user.subscription_end_date = now + dt.timedelta(days=30)
             savings = "0%"
         
         # Save changes to the database
@@ -1063,8 +1090,6 @@ def get_smtp_config(config_id):
 def test_smtp_connection(config_id):
     """Test an SMTP server connection"""
     try:
-        from .email_service import EmailService
-        
         smtp_config = SMTPConfig.query.filter_by(id=config_id, user_id=current_user.id).first()
         
         if not smtp_config:
@@ -1091,18 +1116,18 @@ def test_smtp_connection(config_id):
 def send_email():
     """Send a single email using configured SMTP server"""
     try:
-        from .email_service import EmailService
-        
         # Get form data
-        recipient = request.form.get('recipient')
-        subject = request.form.get('subject')
-        content = request.form.get('content')
-        config_id = request.form.get('smtp_config_id')
+        recipient = request.json.get('recipient')
+        subject = request.json.get('subject')
+        content = request.json.get('content')
+        config_id = request.json.get('smtp_config_id')
         
         # Validate input
         if not all([recipient, subject, content]):
-            flash('Missing required fields', 'danger')
-            return redirect(request.referrer or url_for('email_settings'))
+            return jsonify({
+                'success': False,
+                'message': 'Missing required fields'
+            })
         
         # Get SMTP config (use default if not specified)
         if config_id:
@@ -1111,8 +1136,10 @@ def send_email():
             smtp_config = SMTPConfig.query.filter_by(user_id=current_user.id, is_default=True).first()
         
         if not smtp_config:
-            flash('No SMTP configuration available', 'danger')
-            return redirect(url_for('email_settings'))
+            return jsonify({
+                'success': False,
+                'message': 'No SMTP configuration available'
+            })
         
         # Send email
         success, message = EmailService.send_email(
@@ -1135,14 +1162,21 @@ def send_email():
         db.session.commit()
         
         if success:
-            flash('Email sent successfully', 'success')
+            return jsonify({
+                'success': True,
+                'message': 'Email sent successfully'
+            })
         else:
-            flash(f'Failed to send email: {message}', 'danger')
+            return jsonify({
+                'success': False,
+                'message': f'Failed to send email: {message}'
+            })
             
     except Exception as e:
-        flash(f'Error sending email: {str(e)}', 'danger')
-    
-    return redirect(request.referrer or url_for('email_settings'))
+        return jsonify({
+            'success': False,
+            'message': f'Error sending email: {str(e)}'
+        })
 
 # Create error templates directory if it doesn't exist
 @app.before_first_request
