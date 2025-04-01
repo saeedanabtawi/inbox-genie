@@ -79,11 +79,11 @@
                     <div class="mb-3">
                         <label for="templateSelect" class="form-label">Email Template</label>
                         <select class="form-select mb-3" id="templateSelect">
-                            <option value="cold_email">Cold Email</option>
-                            <option value="follow_up">Follow-Up</option>
-                            <option value="meeting_request">Meeting Request</option>
+                            <option value="default_cold_email">Cold Email</option>
+                            <option value="default_follow_up">Follow-Up</option>
+                            <option value="default_meeting_request">Meeting Request</option>
                             {% for template in custom_templates %}
-                            <option value="custom:{{ template.id }}">{{ template.name }}</option>
+                            <option value="{{ template.id }}">{{ template.name }}</option>
                             {% endfor %}
                         </select>
                         <div class="template-preview mb-3 p-3 bg-light border rounded" style="white-space: pre-wrap; font-family: monospace; font-size: 0.9em;" id="templatePreview"></div>
@@ -264,33 +264,28 @@
 
 {% block extra_js %}
 <script>
-    // Template definitions with required fields - will be populated from API
-    const templates = {
-        cold_email: {
-            content: "",
-            required: ['name', 'role', 'company', 'email']
-        },
-        follow_up: {
-            content: "",
-            required: ['name', 'company', 'email', 'pain_points']
-        },
-        meeting_request: {
-            content: "",
-            required: ['name', 'company', 'email', 'pain_points']
-        }
-    };
+    // Templates object to store all available templates
+    let allTemplates = {};
 
-    // Fetch templates from API on load
+    // Fetch all templates (default + custom) from API on load
     fetch('/api/templates')
         .then(response => response.json())
         .then(data => {
-            // Update template contents
-            if (data.cold_email) templates.cold_email.content = data.cold_email;
-            if (data.follow_up) templates.follow_up.content = data.follow_up;
-            if (data.meeting_request) templates.meeting_request.content = data.meeting_request;
-            
-            // Update the template preview for the initially selected template
-            updateTemplatePreview();
+            if (data.success && data.templates) {
+                // Store all templates in our object for easy access
+                data.templates.forEach(template => {
+                    allTemplates[template.id] = {
+                        name: template.name,
+                        content: template.content,
+                        type: template.type,
+                        description: template.description,
+                        required: template.required_fields || ['name', 'company', 'role', 'email']
+                    };
+                });
+                
+                // Update the template preview for the initially selected template
+                updateTemplatePreview();
+            }
         })
         .catch(error => {
             console.error('Error fetching templates:', error);
@@ -316,25 +311,36 @@
         
         // Function to update the template preview
         function updateTemplatePreview() {
-            const selectedTemplate = templateSelect.value;
+            const selectedTemplateId = templateSelect.value;
             
-            if (selectedTemplate.startsWith('custom:')) {
-                const templateId = selectedTemplate.split(':')[1];
-                // Fetch custom template content from API
-                fetch(`/api/templates/${templateId}`)
+            if (allTemplates[selectedTemplateId]) {
+                // Template is already loaded
+                templatePreview.innerText = allTemplates[selectedTemplateId].content;
+            } else {
+                // Fetch specific template from API
+                fetch(`/api/templates/${selectedTemplateId}`)
                     .then(response => response.json())
                     .then(data => {
-                        templatePreview.innerText = data.content;
+                        if (data.success && data.template) {
+                            // Store template for future use
+                            allTemplates[selectedTemplateId] = {
+                                name: data.template.name,
+                                content: data.template.content,
+                                type: data.template.type,
+                                description: data.template.description,
+                                required: data.template.required_fields || ['name', 'company', 'role', 'email']
+                            };
+                            
+                            // Update preview
+                            templatePreview.innerText = data.template.content;
+                        } else {
+                            templatePreview.innerText = "Could not load template. Please try another one.";
+                        }
                     })
                     .catch(error => {
-                        console.error('Error fetching custom template:', error);
+                        console.error('Error fetching template:', error);
+                        templatePreview.innerText = "Error loading template. Please try again.";
                     });
-            } else if (templates[selectedTemplate]) {
-                // Use built-in template
-                templatePreview.innerText = templates[selectedTemplate].content;
-            } else {
-                // Default message if template not found
-                templatePreview.innerText = "Template preview not available.";
             }
         }
         
@@ -348,7 +354,7 @@
             
             // Get CSV data and selected template
             const csvDataValue = csvData.value;
-            const selectedTemplate = templateSelect.value;
+            const selectedTemplateId = templateSelect.value;
             
             // Process CSV data
             fetch('/api/process-bulk-emails', {
@@ -358,7 +364,7 @@
                 },
                 body: JSON.stringify({ 
                     csv_data: csvDataValue, 
-                    template: selectedTemplate 
+                    template_id: selectedTemplateId 
                 })
             })
             .then(response => response.json())

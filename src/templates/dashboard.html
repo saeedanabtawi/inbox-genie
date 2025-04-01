@@ -192,7 +192,7 @@
                         <div class="col-md-6">
                             <div class="row mt-md-0 mt-4">
                                 <div class="col-6 col-md-3 text-center stat-group">
-                                    <div class="card-stat text-primary">{{ analytics.user_stats.usage_percentage }}%</div>
+                                    <div class="card-stat text-primary">{% if current_user.subscription_tier == 'Enterprise' %}<span class="small">Unlimited</span>{% else %}{{ analytics.user_stats.usage_percentage }}%{% endif %}</div>
                                     <div class="stat-label">Usage</div>
                                 </div>
                                 <div class="col-6 col-md-3 text-center stat-group">

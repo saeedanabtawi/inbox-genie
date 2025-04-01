@@ -223,6 +223,31 @@ Looking forward to your response,
 {{contact_info}}"""
     
     @staticmethod
+    def generate_email_from_template(recipient_data, template_content):
+        """
+        Generate a personalized email from a template
+        
+        Args:
+            recipient_data (dict): Dictionary containing recipient information
+            template_content (str): Email template content
+            
+        Returns:
+            str: Personalized email content
+        """
+        # Replace placeholders in the template
+        email = template_content.replace('{{name}}', recipient_data.get('name', 'Prospect'))
+        email = email.replace('{{company}}', recipient_data.get('company', 'Company'))
+        email = email.replace('{{role}}', recipient_data.get('role', 'Professional'))
+        email = email.replace('{{industry}}', recipient_data.get('industry', 'your industry'))
+        email = email.replace('{{pain_points}}', recipient_data.get('pain_points', ''))
+        email = email.replace('{{username}}', current_user.username if current_user.is_authenticated else '[Your Name]')
+        email = email.replace('{{position}}', '[Your Position]')
+        email = email.replace('{{company}}', '[Your Company]')
+        email = email.replace('{{contact_info}}', '[Your Contact Information]')
+        
+        return email
+    
+    @staticmethod
     def process_csv_data(csv_data, template_type='cold_email'):
         """Process CSV data and generate emails for each recipient
         
@@ -287,8 +312,23 @@ Looking forward to your response,
                     })
                     result['successful_recipients'] += 1
                 except Exception as e:
-                    result['errors'].append(f"Row {row_num}: Error generating email - {str(e)}")
-            
+                    failure_count += 1
+                    error_message = str(e)
+                    error_messages.append(f"Failed to send email to {recipient_email}: {error_message}")
+                    
+                    # Record the failed email
+                    email_history = EmailHistory(
+                        user_id=current_user.id,
+                        smtp_config_id=smtp_config.id,
+                        recipient=recipient_email,
+                        subject=subject,
+                        content=content,
+                        status='failed',
+                        error_message=error_message,
+                        sent_at=datetime.now()
+                    )
+                    db.session.add(email_history)
+        
             # Update success flag if we have any emails
             if result['successful_recipients'] == 0 and result['total_recipients'] > 0:
                 result['success'] = False
@@ -335,11 +375,13 @@ def dashboard():
         # Calculate usage percentage based on subscription tier limits
         max_emails = 500  # Default for premium
         if current_user.subscription_tier == 'Free':
-            max_emails = 50
+            max_emails = 1
+        elif current_user.subscription_tier == 'Basic':
+            max_emails = 100
         elif current_user.subscription_tier == 'Professional':
-            max_emails = 250
-        elif current_user.subscription_tier == 'Enterprise':
             max_emails = 1000
+        elif current_user.subscription_tier == 'Enterprise':
+            max_emails = float('inf')
         
         usage_percentage = min(round((emails_count / max_emails) * 100), 100) if max_emails > 0 else 0
     except Exception as e:
@@ -467,17 +509,17 @@ def change_password():
         flash('Password changed successfully!', 'success')
     return redirect(url_for('profile'))
 
-@app.route('/bulk', methods=['GET'])
+@app.route('/bulk')
 @login_required
 def bulk():
-    # Get custom templates for the current user
+    """Render the bulk email generation page"""
+    # Get user's custom templates from database
     custom_templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
-    # Get SMTP configurations for the current user
-    smtp_configs = SMTPConfig.query.filter_by(user_id=current_user.id).all()
-    # Get email history for the current user
-    email_history = EmailHistory.query.filter_by(user_id=current_user.id).order_by(EmailHistory.sent_at.desc()).limit(50).all()
     
-    return render_template('bulk.html', custom_templates=custom_templates, smtp_configs=smtp_configs, email_history=email_history, EmailGenerator=EmailGenerator)
+    # Get the user's smtp configs
+    smtp_configs = SMTPConfig.query.filter_by(user_id=current_user.id).all()
+    
+    return render_template('bulk.html', custom_templates=custom_templates, smtp_configs=smtp_configs)
 
 @app.route('/send-bulk-emails', methods=['POST'])
 @login_required
@@ -609,16 +651,21 @@ def send_bulk_emails():
 @login_required
 def manage_templates():
     """Render the template management page"""
-    # Get the current templates
+    # Get the default templates
     default_templates = {
         'cold_email': EmailGenerator.get_default_template('cold_email'),
         'follow_up': EmailGenerator.get_default_template('follow_up'),
         'meeting_request': EmailGenerator.get_default_template('meeting_request')
     }
     
-    # In a real application, you would load user-customized templates from a database
+    # Load user's custom templates from the database
+    custom_templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
     
-    return render_template('template_management.html', templates=default_templates)
+    return render_template(
+        'template_management.html', 
+        templates=default_templates,
+        custom_templates=custom_templates
+    )
 
 @app.route('/save-template', methods=['POST'])
 @login_required
@@ -628,9 +675,42 @@ def save_template():
     template_type = data.get('template_type')
     template_content = data.get('template_content')
     
-    # In a real application, you would save this to a database
-    # For this demo, we'll just return success
-    return jsonify({'success': True, 'message': f'Template "{template_type}" saved successfully'})
+    if not template_type or not template_content:
+        return jsonify({'success': False, 'message': 'Template type and content are required'})
+    
+    try:
+        # Check if this user already has a customized version of this default template
+        existing_template = EmailTemplate.query.filter_by(
+            user_id=current_user.id, 
+            template_type=template_type
+        ).first()
+        
+        if existing_template:
+            # Update existing template
+            existing_template.content = template_content
+            existing_template.updated_at = datetime.now()
+            db.session.commit()
+            message = f'Template "{template_type}" updated successfully'
+        else:
+            # Create new template based on default
+            new_template = EmailTemplate(
+                user_id=current_user.id,
+                name=template_type.replace('_', ' ').title(),
+                description=f'Customized {template_type.replace("_", " ")} template',
+                content=template_content,
+                template_type=template_type,
+                required_fields='name,company,role,email'
+            )
+            db.session.add(new_template)
+            db.session.commit()
+            message = f'Template "{template_type}" customized successfully'
+        
+        return jsonify({'success': True, 'message': message})
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error saving template: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error saving template: {str(e)}'}), 500
 
 @app.route('/save-custom-template', methods=['POST'])
 @login_required
@@ -639,16 +719,56 @@ def save_custom_template():
     data = request.json
     template_name = data.get('template_name')
     template_content = data.get('template_content')
+    template_description = data.get('template_description', '')
+    required_fields = data.get('required_fields', 'name,company,role,email')
     
     # Validate inputs
     if not template_name or not template_content:
         return jsonify({'success': False, 'message': 'Template name and content are required'})
     
-    # In a real application, you would save this to a database
-    # For this demo, we'll just return success
-    return jsonify({'success': True, 'message': f'Custom template "{template_name}" created successfully'})
+    try:
+        # Check if a template with this name already exists for this user
+        existing_template = EmailTemplate.query.filter_by(
+            user_id=current_user.id, 
+            name=template_name
+        ).first()
+        
+        if existing_template:
+            # Update existing template
+            existing_template.content = template_content
+            existing_template.description = template_description
+            existing_template.required_fields = required_fields
+            existing_template.updated_at = datetime.now()
+            db.session.commit()
+            return jsonify({
+                'success': True, 
+                'message': f'Template "{template_name}" updated successfully',
+                'template_id': existing_template.id
+            })
+        else:
+            # Create new template
+            new_template = EmailTemplate(
+                user_id=current_user.id,
+                name=template_name,
+                description=template_description,
+                content=template_content,
+                template_type='custom',
+                required_fields=required_fields
+            )
+            db.session.add(new_template)
+            db.session.commit()
+            
+            return jsonify({
+                'success': True, 
+                'message': f'Custom template "{template_name}" created successfully',
+                'template_id': new_template.id
+            })
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error saving template: {str(e)}")
+        return jsonify({'success': False, 'message': f'Error saving template: {str(e)}'}), 500
 
-# Add alias for backward compatibility
 @app.route('/bulk')
 @login_required
 def bulk_emails_alias():
@@ -690,48 +810,129 @@ def about():
 def process_bulk_emails():
     """API endpoint to process bulk emails"""
     data = request.json
-    csv_data = data.get('csv_data', '')
-    template_type = data.get('template', 'cold_email')
+    csv_data = data.get('csv_data')
+    template_id = data.get('template_id')
     
-    # Check if user can send bulk emails based on subscription
-    if not current_user.can_send_bulk_emails():
+    if not csv_data:
         return jsonify({
             'success': False,
-            'error': 'Your current plan does not support bulk email generation. Please upgrade your subscription.',
-            'emails': [],
-            'errors': ['Subscription plan limitation: Free tier does not include bulk emails.'],
-            'total_recipients': 0,
-            'successful_recipients': 0
+            'errors': ['No CSV data provided']
         })
     
-    # Parse the CSV to count how many emails will be generated
+    if not template_id:
+        return jsonify({
+            'success': False,
+            'errors': ['No template selected']
+        })
+    
     try:
-        temp_reader = csv.reader(io.StringIO(csv_data))
-        email_count = sum(1 for row in temp_reader) - 1  # Subtract 1 for header row
-    except:
-        email_count = 0
+        # Parse CSV data
+        csv_io = io.StringIO(csv_data)
+        csv_reader = csv.DictReader(csv_io)
+        
+        if not csv_reader.fieldnames:
+            return jsonify({
+                'success': False,
+                'errors': ['Invalid CSV format. Please check that your CSV is formatted correctly.']
+            })
+        
+        required_fields = ['name', 'company', 'role', 'email']
+        
+        # Get the selected template
+        template_content = None
+        
+        if template_id.startswith('default_'):
+            # Get default template
+            template_type = template_id.replace('default_', '')
+            template_content = EmailGenerator.get_default_template(template_type)
+        else:
+            # Get custom template from database
+            try:
+                template_id_int = int(template_id)
+                custom_template = EmailTemplate.query.filter_by(id=template_id_int, user_id=current_user.id).first()
+                
+                if custom_template:
+                    template_content = custom_template.content
+                    # Update required fields based on template
+                    if custom_template.required_fields:
+                        required_fields = custom_template.required_fields.split(',')
+            except ValueError:
+                return jsonify({
+                    'success': False,
+                    'errors': ['Invalid template ID']
+                })
+        
+        if not template_content:
+            return jsonify({
+                'success': False,
+                'errors': ['Template not found']
+            })
+        
+        # Check for required fields in CSV
+        missing_fields = [field for field in required_fields if field not in csv_reader.fieldnames]
+        if missing_fields:
+            return jsonify({
+                'success': False,
+                'errors': [f'Missing required fields in CSV: {", ".join(missing_fields)}']
+            })
+        
+        # Reset the CSV reader
+        csv_io.seek(0)
+        next(csv_reader)  # Skip the header row
+        
+        # Process each row
+        result = {
+            'success': True,
+            'total_recipients': 0,
+            'successful_recipients': 0,
+            'emails': [],
+            'errors': []
+        }
+        
+        for row_num, row in enumerate(csv_reader, start=2):
+            # Skip empty rows
+            if not any(row.values()):
+                continue
+            
+            # Check for required fields
+            if not all(row.get(field, '') for field in required_fields):
+                missing = [field for field in required_fields if not row.get(field, '')]
+                result['errors'].append(f"Row {row_num}: Missing values for {', '.join(missing)}")
+                continue
+            
+            result['total_recipients'] += 1
+            
+            try:
+                # Generate email
+                generated_email = EmailGenerator.generate_email_from_template(row, template_content)
+                
+                recipient_data = {
+                    'name': row.get('name', ''),
+                    'email': row.get('email', ''),
+                    'company': row.get('company', ''),
+                    'role': row.get('role', '')
+                }
+                
+                result['emails'].append({
+                    'recipient': recipient_data,
+                    'email': generated_email
+                })
+                result['successful_recipients'] += 1
+            except Exception as e:
+                result['errors'].append(f"Row {row_num}: Error generating email - {str(e)}")
+            
+        # Update success flag if we have any emails
+        if result['successful_recipients'] == 0 and result['total_recipients'] > 0:
+            result['success'] = False
+        
+        return jsonify(result)
     
-    # Check if user has enough remaining emails in their plan
-    remaining_emails = current_user.get_remaining_emails()
-    if remaining_emails != float('inf') and email_count > remaining_emails:
+    except Exception as e:
+        print(f"Error processing bulk emails: {str(e)}")
         return jsonify({
             'success': False,
-            'error': f'You only have {remaining_emails} emails remaining in your plan, but you are trying to send {email_count}.',
-            'emails': [],
-            'errors': [f'Subscription plan limitation: Not enough emails remaining ({remaining_emails}/{current_user.get_monthly_email_limit()}).'],
-            'total_recipients': 0,
-            'successful_recipients': 0
-        })
-    
-    # Process CSV and generate emails with the selected template
-    result = EmailGenerator.process_csv_data(csv_data, template_type)
-    
-    # If successful, record the bulk campaign and usage
-    if result.get('successful_recipients', 0) > 0:
-        current_user.record_bulk_campaign(result['successful_recipients'])
-        # In a real app, you would commit these changes to the database
-    
-    return jsonify(result)
+            'errors': [f'Server error: {str(e)}']
+        }), 500
 
 @app.route('/auth/login')
 def login_page():
@@ -746,28 +947,118 @@ def register_page():
 @app.route('/api/templates', methods=['GET'])
 @login_required
 def get_all_templates():
-    """API endpoint to get all available email templates"""
-    templates = {
-        'cold_email': EmailGenerator.get_default_template('cold_email'),
-        'follow_up': EmailGenerator.get_default_template('follow_up'),
-        'meeting_request': EmailGenerator.get_default_template('meeting_request')
-    }
+    """API endpoint to get all available email templates (default and custom)"""
+    try:
+        # Get default templates
+        default_templates = [
+            {
+                'id': 'default_cold_email',
+                'name': 'Cold Email',
+                'type': 'default',
+                'description': 'Default template for cold outreach',
+                'content': EmailGenerator.get_default_template('cold_email')
+            },
+            {
+                'id': 'default_follow_up',
+                'name': 'Follow Up',
+                'type': 'default',
+                'description': 'Default template for following up with prospects',
+                'content': EmailGenerator.get_default_template('follow_up')
+            },
+            {
+                'id': 'default_meeting_request',
+                'name': 'Meeting Request',
+                'type': 'default',
+                'description': 'Default template for requesting meetings',
+                'content': EmailGenerator.get_default_template('meeting_request')
+            }
+        ]
+        
+        # Get user's custom templates from database
+        custom_templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
+        
+        # Convert to list of dictionaries
+        custom_templates_list = []
+        for template in custom_templates:
+            custom_templates_list.append({
+                'id': template.id,
+                'name': template.name,
+                'type': 'custom',
+                'description': template.description,
+                'content': template.content,
+                'required_fields': template.required_fields.split(',')
+            })
+        
+        # Combine all templates
+        all_templates = default_templates + custom_templates_list
+        
+        return jsonify({
+            'success': True,
+            'templates': all_templates
+        })
     
-    # In a real app, you would also include custom templates from the database
-    
-    return jsonify(templates)
+    except Exception as e:
+        print(f"Error retrieving templates: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
-@app.route('/api/templates/<template_type>', methods=['GET'])
+@app.route('/api/templates/<template_id>', methods=['GET'])
 @login_required
-def get_template(template_type):
+def get_template(template_id):
     """API endpoint to get a specific email template"""
-    if template_type.startswith('custom:'):
-        # This would fetch a custom template from the database
-        template_id = template_type.split(':')[1]
-        return jsonify({'content': 'Placeholder for custom template'})
-    else:
-        template = EmailGenerator.get_default_template(template_type)
-        return jsonify({'content': template})
+    try:
+        if template_id.startswith('default_'):
+            # Return a default template
+            template_type = template_id.replace('default_', '')
+            template_content = EmailGenerator.get_default_template(template_type)
+            
+            return jsonify({
+                'success': True,
+                'template': {
+                    'id': template_id,
+                    'name': template_type.replace('_', ' ').title(),
+                    'type': 'default',
+                    'content': template_content,
+                    'required_fields': ['name', 'company', 'role', 'email']
+                }
+            })
+        else:
+            # Fetch custom template from database
+            try:
+                template_id_int = int(template_id)
+                template = EmailTemplate.query.filter_by(id=template_id_int, user_id=current_user.id).first()
+                
+                if not template:
+                    return jsonify({
+                        'success': False,
+                        'error': 'Template not found'
+                    }), 404
+                
+                return jsonify({
+                    'success': True,
+                    'template': {
+                        'id': template.id,
+                        'name': template.name,
+                        'type': 'custom',
+                        'description': template.description,
+                        'content': template.content,
+                        'required_fields': template.required_fields.split(',')
+                    }
+                })
+            except ValueError:
+                return jsonify({
+                    'success': False,
+                    'error': 'Invalid template ID'
+                }), 400
+    
+    except Exception as e:
+        print(f"Error retrieving template: {str(e)}")
+        return jsonify({
+            'success': False,
+            'error': str(e)
+        }), 500
 
 @app.route('/pricing')
 def pricing():
@@ -1211,6 +1502,40 @@ def send_email():
             'success': False,
             'message': f'Error sending email: {str(e)}'
         })
+
+@app.route('/delete-template/<int:template_id>', methods=['POST'])
+@login_required
+def delete_template(template_id):
+    """Delete a custom email template"""
+    try:
+        # Find the template in the database
+        template = EmailTemplate.query.filter_by(id=template_id, user_id=current_user.id).first()
+        
+        if not template:
+            return jsonify({
+                'success': False,
+                'message': 'Template not found or you do not have permission to delete it'
+            }), 404
+        
+        # Get template name for the success message
+        template_name = template.name
+        
+        # Delete the template
+        db.session.delete(template)
+        db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': f'Template "{template_name}" deleted successfully'
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error deleting template: {str(e)}")
+        return jsonify({
+            'success': False,
+            'message': f'Error deleting template: {str(e)}'
+        }), 500
 
 # Create error templates directory if it doesn't exist
 @app.before_first_request
