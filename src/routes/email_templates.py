@@ -10,19 +10,11 @@ templates_bp = Blueprint('templates', __name__, url_prefix='/templates')
 @login_required
 def manage_templates():
     """Render the template management page"""
-    # Get the default templates
-    default_templates = {
-        'cold_email': EmailGenerator.get_default_template('cold_email'),
-        'follow_up': EmailGenerator.get_default_template('follow_up'),
-        'meeting_request': EmailGenerator.get_default_template('meeting_request')
-    }
-    
     # Load user's custom templates from the database
     custom_templates = EmailTemplate.query.filter_by(user_id=current_user.id).all()
     
     return render_template(
         'template_management.html', 
-        templates=default_templates,
         custom_templates=custom_templates
     )
 

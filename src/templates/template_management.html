@@ -83,290 +83,153 @@
     
     <div class="row mb-4">
         <div class="col-lg-12">
-            <ul class="nav nav-tabs" id="templateTabs" role="tablist">
+            <ul class="nav nav-tabs" id="templateManagementTabs" role="tablist">
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="cold-email-tab" data-bs-toggle="tab" data-bs-target="#cold-email" type="button" role="tab" aria-controls="cold-email" aria-selected="true">
-                        Cold Email
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="follow-up-tab" data-bs-toggle="tab" data-bs-target="#follow-up" type="button" role="tab" aria-controls="follow-up" aria-selected="false">
-                        Follow Up
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="meeting-request-tab" data-bs-toggle="tab" data-bs-target="#meeting-request" type="button" role="tab" aria-controls="meeting-request" aria-selected="false">
-                        Meeting Request
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="my-templates-tab" data-bs-toggle="tab" data-bs-target="#my-templates" type="button" role="tab" aria-controls="my-templates" aria-selected="false">
+                    <button class="nav-link active" id="my-templates-tab" data-bs-toggle="tab" data-bs-target="#my-templates" type="button" role="tab" aria-controls="my-templates" aria-selected="true">
                         <i class="bi bi-collection me-1"></i> My Templates
                     </button>
                 </li>
                 <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="custom-template-tab" data-bs-toggle="tab" data-bs-target="#custom-template" type="button" role="tab" aria-controls="custom-template" aria-selected="false">
-                        <i class="bi bi-plus-circle me-1"></i> Create New
+                    <button class="nav-link" id="create-edit-tab" data-bs-toggle="tab" data-bs-target="#create-edit-template" type="button" role="tab" aria-controls="create-edit-template" aria-selected="false">
+                        <i class="bi bi-pencil-square me-1"></i> Create / Edit Template
                     </button>
                 </li>
             </ul>
             
-            <div class="tab-content p-4 border border-top-0 rounded-bottom" id="templateTabsContent">
-                <!-- Cold Email Template -->
-                <div class="tab-pane fade show active" id="cold-email" role="tabpanel" aria-labelledby="cold-email-tab">
-                    <div class="row">
-                        <div class="col-lg-7">
-                            <h4 class="mb-3">Cold Email Template</h4>
-                            <p>This template is used for initial outreach to new prospects.</p>
-                            
-                            <form id="coldEmailForm">
-                                <div class="mb-3">
-                                    <label for="coldEmailEditor" class="form-label">Template Content</label>
-                                    <textarea class="form-control template-editor" id="coldEmailEditor" name="template_content">{{ templates.cold_email }}</textarea>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn btn-outline-secondary reset-btn" data-template-type="cold_email">
-                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save me-2"></i>Save Template
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <div class="col-lg-5">
-                            <h4 class="mb-3">Template Preview</h4>
-                            <p>Here's how your email will look with sample data:</p>
-                            
-                            <div class="template-preview" id="coldEmailPreview"></div>
-                            
-                            <div class="mt-4">
-                                <h5>Best Practices</h5>
-                                <ul>
-                                    <li>Keep your opening personalized based on research</li>
-                                    <li>Clearly explain the value proposition</li>
-                                    <li>Address common pain points in their industry</li>
-                                    <li>Include a clear, specific call-to-action</li>
-                                    <li>Keep the email under 200 words</li>
-                                </ul>
-                            </div>
-                        </div>
+            <div class="tab-content p-4 border border-top-0 rounded-bottom" id="templateManagementTabsContent">
+                <div class="tab-pane fade show active" id="my-templates" role="tabpanel" aria-labelledby="my-templates-tab">
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h2>Your Custom Templates</h2>
+                        <button class="btn btn-success" id="addNewTemplateBtn">
+                            <i class="bi bi-plus-circle-fill me-2"></i>Add New Template
+                        </button>
                     </div>
-                </div>
-                
-                <!-- Follow Up Template -->
-                <div class="tab-pane fade" id="follow-up" role="tabpanel" aria-labelledby="follow-up-tab">
-                    <div class="row">
-                        <div class="col-lg-7">
-                            <h4 class="mb-3">Follow Up Template</h4>
-                            <p>This template is used for following up with prospects who haven't responded.</p>
-                            
-                            <form id="followUpForm">
-                                <div class="mb-3">
-                                    <label for="followUpEditor" class="form-label">Template Content</label>
-                                    <textarea class="form-control template-editor" id="followUpEditor" name="template_content">{{ templates.follow_up }}</textarea>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn btn-outline-secondary reset-btn" data-template-type="follow_up">
-                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save me-2"></i>Save Template
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <div class="col-lg-5">
-                            <h4 class="mb-3">Template Preview</h4>
-                            <p>Here's how your email will look with sample data:</p>
-                            
-                            <div class="template-preview" id="followUpPreview"></div>
-                            
-                            <div class="mt-4">
-                                <h5>Best Practices</h5>
-                                <ul>
-                                    <li>Reference your previous email</li>
-                                    <li>Provide additional value or information</li>
-                                    <li>Keep it shorter than the original email</li>
-                                    <li>Include a clear, low-friction next step</li>
-                                    <li>Make it easy to respond with a simple question</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Meeting Request Template -->
-                <div class="tab-pane fade" id="meeting-request" role="tabpanel" aria-labelledby="meeting-request-tab">
-                    <div class="row">
-                        <div class="col-lg-7">
-                            <h4 class="mb-3">Meeting Request Template</h4>
-                            <p>This template is used specifically for requesting meetings or calls.</p>
-                            
-                            <form id="meetingRequestForm">
-                                <div class="mb-3">
-                                    <label for="meetingRequestEditor" class="form-label">Template Content</label>
-                                    <textarea class="form-control template-editor" id="meetingRequestEditor" name="template_content">{{ templates.meeting_request }}</textarea>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between">
-                                    <button type="button" class="btn btn-outline-secondary reset-btn" data-template-type="meeting_request">
-                                        <i class="bi bi-arrow-counterclockwise me-2"></i>Reset to Default
-                                    </button>
-                                    <button type="submit" class="btn btn-primary">
-                                        <i class="bi bi-save me-2"></i>Save Template
-                                    </button>
-                                </div>
-                            </form>
-                        </div>
-                        
-                        <div class="col-lg-5">
-                            <h4 class="mb-3">Template Preview</h4>
-                            <p>Here's how your email will look with sample data:</p>
-                            
-                            <div class="template-preview" id="meetingRequestPreview"></div>
-                            
-                            <div class="mt-4">
-                                <h5>Best Practices</h5>
-                                <ul>
-                                    <li>Be specific about the meeting purpose</li>
-                                    <li>Suggest specific times (provide options)</li>
-                                    <li>Keep it brief and focused</li>
-                                    <li>Explain what they'll gain from the meeting</li>
-                                    <li>Make it easy to schedule (suggest a scheduling link)</li>
-                                </ul>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- My Templates -->
-                <div class="tab-pane fade" id="my-templates" role="tabpanel" aria-labelledby="my-templates-tab">
-                    <div class="row">
-                        <div class="col-lg-12">
-                            <h4 class="mb-3">My Templates</h4>
-                            <p>Here are your saved custom templates:</p>
-                            
-                            {% if custom_templates and custom_templates|length > 0 %}
-                                <div class="row" id="templates-container">
-                                    {% for template in custom_templates %}
-                                    <div class="col-md-6 col-lg-4 mb-4">
-                                        <div class="card template-card h-100">
-                                            <div class="card-header bg-light">
-                                                <h5 class="card-title mb-0">{{ template.name }}</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                {% if template.description %}
-                                                <p class="card-text">{{ template.description }}</p>
-                                                {% else %}
-                                                <p class="card-text text-muted">No description provided.</p>
-                                                {% endif %}
-                                                <div class="d-flex align-items-center mt-3">
-                                                    <span class="badge bg-primary me-2">Custom</span>
-                                                    <small class="text-muted">Created: {{ template.created_at.strftime('%b %d, %Y') }}</small>
-                                                </div>
-                                            </div>
-                                            <div class="card-footer bg-white">
-                                                <div class="d-flex justify-content-between">
-                                                    <button type="button" class="btn btn-sm btn-outline-primary view-template-btn" data-template-id="{{ template.id }}">
-                                                        <i class="bi bi-eye me-1"></i>View
-                                                    </button>
-                                                    <button type="button" class="btn btn-sm btn-outline-danger delete-template-btn" data-template-id="{{ template.id }}" data-template-name="{{ template.name }}">
-                                                        <i class="bi bi-trash me-1"></i>Delete
-                                                    </button>
-                                                </div>
-                                            </div>
+                    
+                    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="custom-template-list">
+                        {% if custom_templates and custom_templates|length > 0 %}
+                            {% for template in custom_templates %}
+                            <div class="col">
+                                <div class="card template-card h-100">
+                                    <div class="card-header bg-light">
+                                        <h5 class="card-title mb-0">{{ template.name }}</h5>
+                                    </div>
+                                    <div class="card-body">
+                                        {% if template.description %}
+                                        <p class="card-text">{{ template.description }}</p>
+                                        {% else %}
+                                        <p class="card-text text-muted">No description provided.</p>
+                                        {% endif %}
+                                        <div class="d-flex align-items-center mt-3">
+                                            <span class="badge bg-primary me-2">Custom</span>
+                                            <small class="text-muted">Created: {{ template.created_at.strftime('%b %d, %Y') }}</small>
                                         </div>
                                     </div>
-                                    {% endfor %}
+                                    <div class="card-footer bg-white">
+                                        <div class="d-flex justify-content-between">
+                                            <button type="button" class="btn btn-sm btn-outline-primary view-template-btn" data-template-id="{{ template.id }}">
+                                                <i class="bi bi-eye me-1"></i>View
+                                            </button>
+                                            <button type="button" class="btn btn-sm btn-outline-danger delete-template-btn" data-template-id="{{ template.id }}" data-template-name="{{ template.name }}">
+                                                <i class="bi bi-trash me-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </div>
                                 </div>
-                            {% else %}
+                            </div>
+                            {% endfor %}
+                        {% else %}
+                            <div class="col-12">
                                 <div class="alert alert-info">
                                     <i class="bi bi-info-circle me-2"></i>You haven't created any custom templates yet. 
-                                    <a href="#" class="alert-link" onclick="document.getElementById('custom-template-tab').click(); return false;">Create your first template</a>.
-                                </div>
-                            {% endif %}
-                        </div>
-                    </div>
-                    
-                    <!-- Template View Modal -->
-                    <div class="modal fade" id="viewTemplateModal" tabindex="-1" aria-labelledby="viewTemplateModalLabel" aria-hidden="true">
-                        <div class="modal-dialog modal-lg">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="viewTemplateModalLabel">View Template</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <div class="template-content-preview p-3 bg-light rounded" style="white-space: pre-wrap;"></div>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary edit-template-btn">
-                                        <i class="bi bi-pencil me-1"></i>Edit This Template
-                                    </button>
+                                    <a href="#" class="alert-link" onclick="document.getElementById('create-edit-tab').click(); return false;">Create your first template</a>.
                                 </div>
                             </div>
-                        </div>
-                    </div>
-                    
-                    <!-- Delete Confirmation Modal -->
-                    <div class="modal fade" id="deleteTemplateModal" tabindex="-1" aria-labelledby="deleteTemplateModalLabel" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title" id="deleteTemplateModalLabel">Confirm Deletion</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <p>Are you sure you want to delete the template "<span id="templateToDelete"></span>"?</p>
-                                    <p class="text-danger"><strong>This action cannot be undone.</strong></p>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                    <button type="button" class="btn btn-danger confirm-delete-btn">Delete Template</button>
-                                </div>
-                            </div>
-                        </div>
+                        {% endif %}
                     </div>
                 </div>
                 
-                <!-- Custom Template -->
-                <div class="tab-pane fade" id="custom-template" role="tabpanel" aria-labelledby="custom-template-tab">
+                <div class="tab-pane fade" id="create-edit-template" role="tabpanel" aria-labelledby="create-edit-tab">
                     <div class="row">
                         <div class="col-lg-7">
-                            <h4 class="mb-3">Custom Template</h4>
-                            <p>Create a custom template for your specific needs.</p>
-                            
+                            <h4 class="mb-3" id="templateEditorTitle">Create New Template</h4>
                             <form id="customTemplateForm">
+                                <input type="hidden" id="templateId" name="template_id"> 
                                 <div class="mb-3">
-                                    <label for="customTemplateName" class="form-label">Template Name</label>
-                                    <input type="text" class="form-control" id="customTemplateName" name="template_name">
+                                    <label for="customTemplateName" class="form-label">Template Name <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="customTemplateName" name="template_name" required>
                                 </div>
                                 <div class="mb-3">
-                                    <label for="customTemplateEditor" class="form-label">Template Content</label>
-                                    <textarea class="form-control template-editor" id="customTemplateEditor" name="template_content"></textarea>
+                                    <label for="customTemplateDescription" class="form-label">Description (Optional)</label>
+                                    <textarea class="form-control" id="customTemplateDescription" name="template_description" rows="2"></textarea>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="customTemplateSubject" class="form-label">Subject Line <span class="text-danger">*</span></label>
+                                    <input type="text" class="form-control" id="customTemplateSubject" name="subject" required>
+                                    <small class="form-text text-muted">You can use template variables here too!</small>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="customTemplateEditor" class="form-label">Template Body <span class="text-danger">*</span></label>
+                                    <textarea class="form-control template-editor" id="customTemplateEditor" name="template_content" required></textarea>
                                 </div>
                                 
                                 <div class="d-flex justify-content-between">
-                                    <button type="submit" class="btn btn-primary">
+                                    <button type="submit" class="btn btn-primary" id="saveTemplateBtn">
                                         <i class="bi bi-save me-2"></i>Save Template
+                                    </button>
+                                    <button type="button" class="btn btn-outline-secondary" id="cancelEditBtn" style="display: none;">
+                                        <i class="bi bi-x-circle me-2"></i>Cancel Edit
                                     </button>
                                 </div>
                             </form>
                         </div>
                         
                         <div class="col-lg-5">
-                            <h4 class="mb-3">Template Preview</h4>
-                            <p>Here's how your email will look with sample data:</p>
-                            
+                            <h4 class="mb-3">Live Preview</h4>
+                            <p>See how your email body will look with sample data:</p>
                             <div class="template-preview" id="customTemplatePreview"></div>
                         </div>
                     </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Template View Modal -->
+    <div class="modal fade" id="viewTemplateModal" tabindex="-1" aria-labelledby="viewTemplateModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewTemplateModalLabel">View Template</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="template-content-preview p-3 bg-light rounded" style="white-space: pre-wrap;"></div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary edit-template-btn">
+                        <i class="bi bi-pencil me-1"></i>Edit This Template
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Delete Confirmation Modal -->
+    <div class="modal fade" id="deleteTemplateModal" tabindex="-1" aria-labelledby="deleteTemplateModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="deleteTemplateModalLabel">Confirm Deletion</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Are you sure you want to delete the template "<span id="templateToDelete"></span>"?</p>
+                    <p class="text-danger"><strong>This action cannot be undone.</strong></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="button" class="btn btn-danger confirm-delete-btn">Delete Template</button>
                 </div>
             </div>
         </div>
@@ -378,27 +241,9 @@
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     const variableBadges = document.querySelectorAll('.variable-badge');
-    const coldEmailEditor = document.getElementById('coldEmailEditor');
-    const followUpEditor = document.getElementById('followUpEditor');
-    const meetingRequestEditor = document.getElementById('meetingRequestEditor');
     const customTemplateEditor = document.getElementById('customTemplateEditor');
-    const coldEmailPreview = document.getElementById('coldEmailPreview');
-    const followUpPreview = document.getElementById('followUpPreview');
-    const meetingRequestPreview = document.getElementById('meetingRequestPreview');
+    const customTemplateSubject = document.getElementById('customTemplateSubject');
     const customTemplatePreview = document.getElementById('customTemplatePreview');
-    const resetButtons = document.querySelectorAll('.reset-btn');
-    
-    // Default templates (for reset functionality)
-    const defaultTemplates = {
-        cold_email: `{{ templates.cold_email|replace("\\", "\\\\")|replace("'", "\\'")|replace('\n', '\\n')|safe }}`,
-        follow_up: `{{ templates.follow_up|replace("\\", "\\\\")|replace("'", "\\'")|replace('\n', '\\n')|safe }}`,
-        meeting_request: `{{ templates.meeting_request|replace("\\", "\\\\")|replace("'", "\\'")|replace('\n', '\\n')|safe }}`
-    };
-    
-    // Initialize template editors with content
-    if (coldEmailEditor) coldEmailEditor.value = defaultTemplates.cold_email;
-    if (followUpEditor) followUpEditor.value = defaultTemplates.follow_up;
-    if (meetingRequestEditor) meetingRequestEditor.value = defaultTemplates.meeting_request;
     
     // Sample data for template preview
     const sampleData = {
@@ -422,13 +267,10 @@ document.addEventListener('DOMContentLoaded', function() {
         return result;
     }
     
-    // Update all preview areas with generated email content
-    function updatePreviews() {
-        if (coldEmailEditor) coldEmailPreview.innerText = replaceVariables(coldEmailEditor.value, sampleData);
-        if (followUpEditor) followUpPreview.innerText = replaceVariables(followUpEditor.value, sampleData);
-        if (meetingRequestEditor) meetingRequestPreview.innerText = replaceVariables(meetingRequestEditor.value, sampleData);
-        if (customTemplateEditor) customTemplatePreview.innerText = replaceVariables(customTemplateEditor.value, sampleData);
-    }
+    // Update preview when editor changes
+    customTemplateEditor.addEventListener('input', function() {
+        customTemplatePreview.innerText = replaceVariables(customTemplateEditor.value, sampleData);
+    });
     
     // Add variable to editor when badge is clicked
     variableBadges.forEach(badge => {
@@ -436,126 +278,33 @@ document.addEventListener('DOMContentLoaded', function() {
             const variable = this.getAttribute('data-variable');
             const variableText = '{{' + variable + '}}';
             
-            // Find active editor
-            let activeEditor = null;
-            
-            if (document.activeElement === coldEmailEditor) {
-                activeEditor = coldEmailEditor;
-            } else if (document.activeElement === followUpEditor) {
-                activeEditor = followUpEditor;
-            } else if (document.activeElement === meetingRequestEditor) {
-                activeEditor = meetingRequestEditor;
-            } else if (document.activeElement === customTemplateEditor) {
+            // Determine the active editor (subject or body)
+            let activeEditor;
+            if (document.activeElement === customTemplateSubject) {
+                activeEditor = customTemplateSubject;
+            } else {
+                // Default to body editor if subject isn't focused
                 activeEditor = customTemplateEditor;
-            } else {
-                // Default to the visible tab's editor
-                if (document.getElementById('cold-email').classList.contains('active')) {
-                    activeEditor = coldEmailEditor;
-                } else if (document.getElementById('follow-up').classList.contains('active')) {
-                    activeEditor = followUpEditor;
-                } else if (document.getElementById('meeting-request').classList.contains('active')) {
-                    activeEditor = meetingRequestEditor;
-                } else if (document.getElementById('custom-template').classList.contains('active')) {
-                    activeEditor = customTemplateEditor;
-                }
             }
             
-            if (activeEditor) {
-                // Insert at cursor position
-                const startPos = activeEditor.selectionStart;
-                const endPos = activeEditor.selectionEnd;
-                activeEditor.value = activeEditor.value.substring(0, startPos) 
-                    + variableText 
-                    + activeEditor.value.substring(endPos, activeEditor.value.length);
-                
-                // Update preview
-                updatePreviews();
-                
-                // Set focus back to editor and place cursor after inserted variable
-                activeEditor.focus();
-                activeEditor.selectionStart = startPos + variableText.length;
-                activeEditor.selectionEnd = startPos + variableText.length;
+            // Insert at cursor position in the active editor
+            const startPos = activeEditor.selectionStart;
+            const endPos = activeEditor.selectionEnd;
+            activeEditor.value = activeEditor.value.substring(0, startPos) 
+                + variableText 
+                + activeEditor.value.substring(endPos, activeEditor.value.length);
+            
+            // Update preview if body editor was changed
+            if (activeEditor === customTemplateEditor) {
+                customTemplatePreview.innerText = replaceVariables(customTemplateEditor.value, sampleData);
             }
+            
+            // Set focus back to editor and place cursor after inserted variable
+            activeEditor.focus();
+            activeEditor.selectionStart = startPos + variableText.length;
+            activeEditor.selectionEnd = startPos + variableText.length;
         });
     });
-    
-    // Update preview when editors change
-    if (coldEmailEditor) coldEmailEditor.addEventListener('input', updatePreviews);
-    if (followUpEditor) followUpEditor.addEventListener('input', updatePreviews);
-    if (meetingRequestEditor) meetingRequestEditor.addEventListener('input', updatePreviews);
-    if (customTemplateEditor) customTemplateEditor.addEventListener('input', updatePreviews);
-    
-    // Reset templates to default when reset button is clicked
-    resetButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const templateType = this.getAttribute('data-template-type');
-            let editor = null;
-            
-            if (templateType === 'cold_email') {
-                editor = coldEmailEditor;
-                editor.value = defaultTemplates.cold_email;
-            } else if (templateType === 'follow_up') {
-                editor = followUpEditor;
-                editor.value = defaultTemplates.follow_up;
-            } else if (templateType === 'meeting_request') {
-                editor = meetingRequestEditor;
-                editor.value = defaultTemplates.meeting_request;
-            }
-            
-            updatePreviews();
-        });
-    });
-    
-    // Save standard template changes
-    function saveTemplate(templateType, templateContent) {
-        fetch('/save-template', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-                template_type: templateType,
-                template_content: templateContent
-            })
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                // Show success notification
-                const toastHTML = 
-                '<div class="toast align-items-center text-white bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true">' +
-                    '<div class="d-flex">' +
-                        '<div class="toast-body">' +
-                            '<i class="bi bi-check-circle me-2"></i>' + data.message +
-                        '</div>' +
-                        '<button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>' +
-                    '</div>' +
-                '</div>';
-                
-                const toastContainer = document.createElement('div');
-                toastContainer.className = 'toast-container position-fixed top-0 end-0 p-3';
-                toastContainer.innerHTML = toastHTML;
-                document.body.appendChild(toastContainer);
-                
-                const toast = new bootstrap.Toast(toastContainer.querySelector('.toast'));
-                toast.show();
-                
-                // Auto-remove after 3 seconds
-                setTimeout(() => {
-                    toast.hide();
-                    setTimeout(() => {
-                        document.body.removeChild(toastContainer);
-                    }, 500);
-                }, 3000);
-            } else {
-                alert('Error saving template: ' + data.message);
-            }
-        })
-        .catch(error => {
-            console.error('Error saving template:', error);
-            alert('There was an error saving your template. Please try again.');
-        });
-    }
     
     // Save custom template
     function saveCustomTemplate(templateContent, templateName) {
@@ -619,21 +368,6 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Handle form submissions
-    document.getElementById('coldEmailForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveTemplate('cold_email', coldEmailEditor.value);
-    });
-    
-    document.getElementById('followUpForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveTemplate('follow_up', followUpEditor.value);
-    });
-    
-    document.getElementById('meetingRequestForm')?.addEventListener('submit', function(e) {
-        e.preventDefault();
-        saveTemplate('meeting_request', meetingRequestEditor.value);
-    });
-    
     document.getElementById('customTemplateForm')?.addEventListener('submit', function(e) {
         e.preventDefault();
         const templateName = document.getElementById('customTemplateName').value;
@@ -655,8 +389,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Handle template view buttons
     const viewButtons = document.querySelectorAll('.view-template-btn');
     const viewModal = new bootstrap.Modal(document.getElementById('viewTemplateModal'));
-    const templateContentPreview = document.querySelector('.template-content-preview');
-    const editTemplateBtn = document.querySelector('.edit-template-btn');
+    const viewModalTitle = document.getElementById('viewTemplateModalLabel');
+    const viewModalPreview = viewModal._element.querySelector('.template-content-preview');
+    const editButtonFromModal = viewModal._element.querySelector('.edit-template-btn');
+    let currentEditingTemplateId = null;
     
     viewButtons.forEach(button => {
         button.addEventListener('click', function() {
@@ -668,12 +404,10 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(data => {
                     if (data.success && data.template) {
                         // Show content in modal
-                        templateContentPreview.innerText = data.template.content;
-                        
-                        // Set up edit button
-                        editTemplateBtn.setAttribute('data-template-id', templateId);
-                        
-                        // Show modal
+                        viewModalPreview.innerHTML = 
+                            `<strong>Subject:</strong> ${data.template.subject}<hr>
+                             <strong>Body:</strong><br>${data.template.content}`;
+                        currentEditingTemplateId = templateId; // Store ID for potential edit
                         viewModal.show();
                     } else {
                         alert('Error loading template. Please try again.');
@@ -686,44 +420,75 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     });
     
-    // Handle edit button in view modal
-    editTemplateBtn?.addEventListener('click', function() {
-        const templateId = this.getAttribute('data-template-id');
-        
-        // Close view modal
-        viewModal.hide();
-        
-        // Load template into custom editor
-        fetch(`/api/templates/${templateId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success && data.template) {
-                    // Switch to custom template tab
-                    document.getElementById('custom-template-tab').click();
-                    
-                    // Populate form
-                    document.getElementById('customTemplateName').value = data.template.name;
-                    document.getElementById('customTemplateEditor').value = data.template.content;
-                    
-                    // Update preview
-                    updatePreviews();
-                } else {
-                    alert('Error loading template for editing. Please try again.');
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching template for edit:', error);
-                alert('Error loading template for editing. Please try again.');
-            });
+    // Handle clicking "Edit This Template" from the View Modal
+    editButtonFromModal.addEventListener('click', function() {
+        if (currentEditingTemplateId) {
+            // Fetch template data again to ensure freshness
+            fetch(`/api/templates/${currentEditingTemplateId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if(data.success) {
+                        populateEditForm(data.template);
+                        viewModal.hide(); // Hide the view modal
+                        // Switch to the edit tab
+                        const editTab = new bootstrap.Tab(document.getElementById('create-edit-tab'));
+                        editTab.show();
+                    } else {
+                        alert('Could not load template for editing.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Error fetching template for edit:', error);
+                    alert('Error fetching template data.');
+                });
+        }
     });
     
-    // Handle delete template buttons
-    const deleteButtons = document.querySelectorAll('.delete-template-btn');
-    const deleteModal = new bootstrap.Modal(document.getElementById('deleteTemplateModal'));
-    const templateToDeleteSpan = document.getElementById('templateToDelete');
-    const confirmDeleteBtn = document.querySelector('.confirm-delete-btn');
+    // Function to populate the edit form
+    function populateEditForm(template) {
+        document.getElementById('templateId').value = template.id;
+        document.getElementById('customTemplateName').value = template.name;
+        document.getElementById('customTemplateDescription').value = template.description || '';
+        document.getElementById('customTemplateSubject').value = template.subject;
+        document.getElementById('customTemplateEditor').value = template.content;
+        document.getElementById('templateEditorTitle').innerText = 'Edit Template';
+        document.getElementById('saveTemplateBtn').innerHTML = '<i class="bi bi-save me-2"></i>Update Template';
+        document.getElementById('cancelEditBtn').style.display = 'inline-block'; // Show cancel button
+        customTemplatePreview.innerText = replaceVariables(template.content, sampleData);
+    }
     
-    deleteButtons.forEach(button => {
+    // Function to reset the form
+    function resetTemplateForm() {
+        document.getElementById('customTemplateForm').reset();
+        document.getElementById('templateId').value = '';
+        document.getElementById('templateEditorTitle').innerText = 'Create New Template';
+        document.getElementById('saveTemplateBtn').innerHTML = '<i class="bi bi-save me-2"></i>Save Template';
+        document.getElementById('cancelEditBtn').style.display = 'none';
+        customTemplatePreview.innerText = '';
+    }
+    
+    // Add New Template button functionality
+    document.getElementById('addNewTemplateBtn').addEventListener('click', function() {
+        resetTemplateForm();
+        const createTab = new bootstrap.Tab(document.getElementById('create-edit-tab'));
+        createTab.show();
+    });
+    
+    // Cancel Edit button functionality
+    document.getElementById('cancelEditBtn').addEventListener('click', function() {
+        resetTemplateForm();
+        // Optionally switch back to the 'My Templates' tab
+        // const myTemplatesTab = new bootstrap.Tab(document.getElementById('my-templates-tab'));
+        // myTemplatesTab.show();
+    });
+    
+    // --- Delete Functionality ---
+    const deleteModalElement = document.getElementById('deleteTemplateModal');
+    const deleteModal = new bootstrap.Modal(deleteModalElement);
+    const templateToDeleteSpan = deleteModalElement.querySelector('#templateToDelete');
+    const confirmDeleteBtn = deleteModalElement.querySelector('.confirm-delete-btn');
+    
+    document.querySelectorAll('.delete-template-btn').forEach(button => {
         button.addEventListener('click', function() {
             const templateId = this.getAttribute('data-template-id');
             const templateName = this.getAttribute('data-template-name');
@@ -738,7 +503,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
     
     // Handle delete confirmation
-    confirmDeleteBtn?.addEventListener('click', function() {
+    confirmDeleteBtn.addEventListener('click', function() {
         const templateId = this.getAttribute('data-template-id');
         
         // Call API to delete template
@@ -768,9 +533,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 deleteModal.hide();
             });
     });
-    
-    // Initialize previews
-    updatePreviews();
 });
 </script>
 {% endblock %}

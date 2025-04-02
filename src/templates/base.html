@@ -276,10 +276,13 @@
                         <a class="nav-link {{ 'active' if request.endpoint == 'templates.manage_templates' else '' }}" href="{{ url_for('templates.manage_templates') }}">Email Templates</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'email.send_email_route' else '' }}" href="{{ url_for('email.send_email_route') }}">Send Email</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'email.bulk' else '' }}" href="{{ url_for('email.bulk') }}">Bulk Sending</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.endpoint == 'smtp.configure_smtp' else '' }}" href="{{ url_for('smtp.configure_smtp') }}">SMTP Config</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'email.bulk' else '' }}" href="{{ url_for('email.bulk') }}">Send Email</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'smtp.email_settings' else '' }}" href="{{ url_for('smtp.email_settings') }}">SMTP Config</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -334,7 +337,7 @@
                         <li><a href="{{ url_for('main.home') }}">Home</a></li>
                         {% if current_user.is_authenticated %}
                         <li><a href="{{ url_for('templates.manage_templates') }}">Templates</a></li>
-                        <li><a href="{{ url_for('email.send_email_route') }}">Send Email</a></li>
+                        <li><a href="{{ url_for('email.bulk') }}">Send Email</a></li>
                         {% else %}
                          <li><a href="{{ url_for('auth.login') }}">Login</a></li>
                          <li><a href="{{ url_for('auth.register') }}">Sign Up</a></li>
