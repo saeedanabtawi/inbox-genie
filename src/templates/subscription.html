@@ -127,10 +127,7 @@
                         <div class="progress-bar 
                              {% if usage_percentage > 90 %}bg-danger{% elif usage_percentage > 70 %}bg-warning{% else %}bg-success{% endif %}" 
                              role="progressbar" 
-                             style="width: {{ usage_percentage }}%" 
-                             aria-valuenow="{{ usage_percentage }}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100"></div>
+                             style="width:{{ usage_percentage }}%;aria-valuenow={{ usage_percentage }};aria-valuemin=0;aria-valuemax=100"></div>
                     </div>
                     <div class="usage-labels">
                         <div>0</div>
@@ -211,11 +208,11 @@
                     {% if user.subscription_tier == plan.name %}
                     <button class="btn btn-outline-secondary w-100 mt-3" disabled>Current Plan</button>
                     {% elif plan.name == 'Free' %}
-                    <form action="{{ url_for('downgrade_to_free') }}" method="post">
+                    <form action="{{ url_for('profile.downgrade_to_free') }}" method="post">
                         <button type="submit" class="btn btn-outline-danger w-100 mt-3">Downgrade</button>
                     </form>
                     {% else %}
-                    <form action="{{ url_for('upgrade_subscription') }}" method="post">
+                    <form action="{{ url_for('profile.upgrade_subscription') }}" method="post">
                         <input type="hidden" name="plan" value="{{ plan_key }}">
                         <input type="hidden" name="billing_cycle" value="{% if user.is_annual_billing %}annual{% else %}monthly{% endif %}">
                         <button type="submit" class="btn btn-primary w-100 mt-3">
@@ -256,7 +253,7 @@
                     </div>
                     
                     <h6 class="mb-3">Billing Cycle</h6>
-                    <form action="{{ url_for('update_billing_cycle') }}" method="post" class="mb-4">
+                    <form action="{{ url_for('profile.update_billing_cycle') }}" method="post" class="mb-4">
                         <div class="form-check mb-2">
                             <input class="form-check-input" type="radio" name="billing_cycle" id="monthlyBilling" value="monthly" {% if not user.is_annual_billing %}checked{% endif %}>
                             <label class="form-check-label" for="monthlyBilling">

@@ -52,7 +52,7 @@
                     <h5 class="mb-0">Account Information</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('update_profile') }}">
+                    <form method="POST" action="{{ url_for('profile.update_profile') }}">
                         
                         <div class="mb-3">
                             <label for="username" class="form-label">Username</label>
@@ -86,7 +86,7 @@
                     <h5 class="mb-0">Change Password</h5>
                 </div>
                 <div class="card-body">
-                    <form method="POST" action="{{ url_for('change_password') }}">
+                    <form method="POST" action="{{ url_for('profile.change_password') }}">
                         
                         <div class="mb-3">
                             <label for="current_password" class="form-label">Current Password</label>

@@ -270,16 +270,16 @@
                 <ul class="navbar-nav ms-auto align-items-center">
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/dashboard' }}" href="{{ url_for('dashboard') }}">Dashboard</a>
+                        <a class="nav-link {{ 'active' if request.path == '/dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/bulk' }}" href="{{ url_for('bulk') }}">Bulk Emails</a>
+                        <a class="nav-link {{ 'active' if request.path == '/bulk' }}" href="{{ url_for('email.bulk') }}">Bulk Emails</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/templates' }}" href="{{ url_for('manage_templates') }}">Templates</a>
+                        <a class="nav-link {{ 'active' if request.path == '/templates' }}" href="{{ url_for('templates.manage_templates') }}">Templates</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/email-settings' }}" href="{{ url_for('email_settings') }}">Email Settings</a>
+                        <a class="nav-link {{ 'active' if request.path == '/email-settings' }}" href="{{ url_for('smtp.email_settings') }}">Email Settings</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -287,18 +287,18 @@
                             {{ current_user.username }}
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                            <li><a class="dropdown-item" href="{{ url_for('profile') }}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('subscription') }}">Subscription</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.view_profile') }}">Profile</a></li>
+                            <li><a class="dropdown-item" href="{{ url_for('profile.subscription') }}">Subscription</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/' or request.path == '/home' }}" href="/">Product</a>
+                        <a class="nav-link {{ 'active' if request.path == '/' or request.path == '/home' }}" href="{{ url_for('main.landing') }}">Product</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/pricing' }}" href="{{ url_for('pricing') }}">Pricing</a>
+                        <a class="nav-link {{ 'active' if request.path == '/pricing' }}" href="{{ url_for('main.pricing') }}">Pricing</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link {{ 'active' if '/auth/login' in request.path }}" href="{{ url_for('auth.login') }}">Login</a>
@@ -327,9 +327,9 @@
                 <div class="col-lg-2 col-md-3 col-6 mb-4 mb-md-0">
                     <h5>Product</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="/">Home</a></li>
-                        <li class="mb-2"><a href="{{ url_for('about') }}">Features</a></li>
-                        <li class="mb-2"><a href="{{ url_for('pricing') }}">Pricing</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.landing') }}">Home</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.about') }}">Features</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.pricing') }}">Pricing</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-3 col-6 mb-4 mb-md-0">
@@ -343,7 +343,7 @@
                 <div class="col-lg-2 col-md-6 col-6 mb-4 mb-md-0">
                     <h5>Company</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ url_for('about') }}">About</a></li>
+                        <li class="mb-2"><a href="{{ url_for('main.about') }}">About</a></li>
                         <li class="mb-2"><a href="#">Careers</a></li>
                         <li class="mb-2"><a href="#">Contact</a></li>
                     </ul>
