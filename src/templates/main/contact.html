@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+
+{% block title %}Contact Us - Inbox Genie{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Get In Touch</h1>
+    <p class="lead">Have questions or need support? We'd love to hear from you.</p>
+    
+    <div class="row mt-5">
+        <div class="col-md-6">
+            <h2>Contact Information</h2>
+            <p><i class="fas fa-envelope me-2"></i> Email: support@inboxgenie.example.com</p>
+            <p><i class="fas fa-phone me-2"></i> Phone: +1 (555) 123-4567 (Placeholder)</p>
+            <p><i class="fas fa-map-marker-alt me-2"></i> Address: 123 Genie Lane, Webville, CA 90210 (Placeholder)</p>
+        </div>
+        <div class="col-md-6">
+            <h2>Send Us a Message</h2>
+            <form>
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="email" class="form-label">Email</label>
+                    <input type="email" class="form-control" id="email" required>
+                </div>
+                <div class="mb-3">
+                    <label for="message" class="form-label">Message</label>
+                    <textarea class="form-control" id="message" rows="4" required></textarea>
+                </div>
+                <button type="submit" class="btn btn-primary">Send Message</button>
+            </form>
+            <p class="mt-3 text-muted small">Note: This is a non-functional demo form.</p>
+        </div>
+    </div>
+</div>
+{% endblock %}

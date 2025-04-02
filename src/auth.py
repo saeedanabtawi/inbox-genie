@@ -131,7 +131,7 @@ class ResetPasswordForm(FlaskForm):
 def login():
     """Handle user login"""
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
         
     form = LoginForm()
     
@@ -197,7 +197,7 @@ def login():
             
             # Redirect to requested page or home
             next_page = request.args.get('next')
-            return redirect(next_page or url_for('home'))
+            return redirect(next_page or url_for('main.home'))
         else:
             # Handle failed login attempts
             if user:
@@ -222,7 +222,7 @@ def login():
 def register():
     """Handle user registration"""
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
         
     form = RegistrationForm()
     
@@ -310,7 +310,7 @@ def confirm_email(token):
 def reset_password_request():
     """Handle password reset request"""
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
         
     form = ResetPasswordRequestForm()
     
@@ -342,7 +342,7 @@ def reset_password_request():
 def reset_password(token):
     """Handle password reset"""
     if current_user.is_authenticated:
-        return redirect(url_for('home'))
+        return redirect(url_for('main.home'))
         
     try:
         serializer = get_serializer()

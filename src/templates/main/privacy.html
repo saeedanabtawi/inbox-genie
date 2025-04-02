@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Privacy Policy - Inbox Genie{% endblock %}
+
+{% block content %}
+<div class="container py-5">
+    <h1 class="mb-4">Privacy Policy</h1>
+    <p class="text-muted">Last Updated: {{ current_date }}</p> <!-- Replace with dynamic date if needed -->
+
+    <p>Your privacy is important to us. This Privacy Policy explains how Inbox Genie ("we," "us," or "our") collects, uses, shares, and protects your personal information when you use our website and services.</p>
+
+    <h2 class="mt-4">1. Information We Collect</h2>
+    <p>We may collect the following types of information:</p>
+    <ul>
+        <li><strong>Personal Information:</strong> Name, email address, password (hashed), payment information (processed by a third-party provider), and any other information you voluntarily provide.</li>
+        <li><strong>Usage Data:</strong> Information about how you interact with our service, such as IP address, browser type, pages visited, time spent on pages, and email generation activity (metadata, not content unless explicitly permitted for features like template improvement).</li>
+        <li><strong>Cookies:</strong> We use cookies and similar tracking technologies to enhance your experience and analyze usage patterns.</li>
+    </ul>
+
+    <h2 class="mt-4">2. How We Use Your Information</h2>
+    <p>We use your information to:</p>
+    <ul>
+        <li>Provide, maintain, and improve our services.</li>
+        <li>Process transactions and manage your account.</li>
+        <li>Communicate with you, including sending service updates and promotional materials (you can opt-out).</li>
+        <li>Personalize your experience.</li>
+        <li>Monitor and analyze usage and trends.</li>
+        <li>Ensure the security of our platform.</li>
+    </ul>
+
+    <h2 class="mt-4">3. Information Sharing</h2>
+    <p>We do not sell your personal information. We may share your information with:</p>
+    <ul>
+        <li><strong>Service Providers:</strong> Third-party vendors who help us operate our business (e.g., payment processors, hosting providers).</li>
+        <li><strong>Legal Requirements:</strong> If required by law or to protect our rights, property, or safety, or that of others.</li>
+    </ul>
+
+    <h2 class="mt-4">4. Data Security</h2>
+    <p>We implement reasonable security measures to protect your information, but no method of transmission or storage is 100% secure.</p>
+
+    <h2 class="mt-4">5. Your Choices</h2>
+    <p>You can access and update your account information through your profile settings. You can also opt-out of marketing communications.</p>
+
+    <h2 class="mt-4">6. Changes to This Policy</h2>
+    <p>We may update this Privacy Policy from time to time. We will notify you of any significant changes by posting the new policy on our website.</p>
+
+    <h2 class="mt-4">7. Contact Us</h2>
+    <p>If you have any questions about this Privacy Policy, please contact us at privacy@inboxgenie.example.com.</p>
+
+</div>
+{% endblock %}

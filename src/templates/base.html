@@ -258,7 +258,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg">
         <div class="container">
-            <a class="navbar-brand" href="/">
+            <a class="navbar-brand" href="{{ url_for('main.home') }}">
                 <i class="fas fa-envelope-open-text" style="color: var(--primary-color);"></i>
                 Inbox Genie
             </a>
@@ -267,19 +267,19 @@
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav ms-auto align-items-center">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link {{ 'active' if request.endpoint == 'main.home' else '' }}" href="{{ url_for('main.home') }}">Home</a>
+                    </li>
                     {% if current_user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/dashboard' }}" href="{{ url_for('main.dashboard') }}">Dashboard</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'templates.manage_templates' else '' }}" href="{{ url_for('templates.manage_templates') }}">Email Templates</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/bulk' }}" href="{{ url_for('email.bulk') }}">Bulk Emails</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'email.send_email_route' else '' }}" href="{{ url_for('email.send_email_route') }}">Send Email</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/templates' }}" href="{{ url_for('templates.manage_templates') }}">Templates</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/email-settings' }}" href="{{ url_for('smtp.email_settings') }}">Email Settings</a>
+                        <a class="nav-link {{ 'active' if request.endpoint == 'smtp.configure_smtp' else '' }}" href="{{ url_for('smtp.configure_smtp') }}">SMTP Config</a>
                     </li>
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button"
@@ -288,24 +288,16 @@
                         </a>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
                             <li><a class="dropdown-item" href="{{ url_for('profile.view_profile') }}">Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('profile.subscription') }}">Subscription</a></li>
                             <li><hr class="dropdown-divider"></li>
                             <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}">Logout</a></li>
                         </ul>
                     </li>
                     {% else %}
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/' or request.path == '/home' }}" href="{{ url_for('main.landing') }}">Product</a>
+                        <a class="nav-link login-link {{ 'active' if request.endpoint == 'auth.login' else '' }}" href="{{ url_for('auth.login') }}">Login</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link {{ 'active' if request.path == '/pricing' }}" href="{{ url_for('main.pricing') }}">Pricing</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link {{ 'active' if '/auth/login' in request.path }}" href="{{ url_for('auth.login') }}">Login</a>
-                    </li>
-                    <li class="nav-item ms-2">
-                        <a class="btn btn-get-started {{ 'active' if '/auth/register' in request.path }}" 
-                           href="{{ url_for('auth.register') }}">Get started</a>
+                        <a class="nav-link btn btn-get-started ms-lg-2 {{ 'active' if request.endpoint == 'auth.register' else '' }}" href="{{ url_for('auth.register') }}">Get Started</a>
                     </li>
                     {% endif %}
                 </ul>
@@ -314,7 +306,19 @@
     </nav>
 
     <!-- Main Content -->
-    {% block content %}{% endblock %}
+    <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                {% for category, message in messages %}
+                    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                {% endfor %}
+            {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+    </div>
 
     <!-- Footer -->
     <footer>
@@ -322,52 +326,55 @@
             <div class="row">
                 <div class="col-lg-4 col-md-6 mb-4 mb-md-0">
                     <h4>Inbox Genie</h4>
-                    <p>AI-powered email personalization to maximize your response rates.</p>
+                    <p class="text-muted">Your smart AI assistant for crafting perfect emails.</p>
                 </div>
                 <div class="col-lg-2 col-md-3 col-6 mb-4 mb-md-0">
                     <h5>Product</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ url_for('main.landing') }}">Home</a></li>
-                        <li class="mb-2"><a href="{{ url_for('main.about') }}">Features</a></li>
-                        <li class="mb-2"><a href="{{ url_for('main.pricing') }}">Pricing</a></li>
+                        <li><a href="{{ url_for('main.home') }}">Home</a></li>
+                        {% if current_user.is_authenticated %}
+                        <li><a href="{{ url_for('templates.manage_templates') }}">Templates</a></li>
+                        <li><a href="{{ url_for('email.send_email_route') }}">Send Email</a></li>
+                        {% else %}
+                         <li><a href="{{ url_for('auth.login') }}">Login</a></li>
+                         <li><a href="{{ url_for('auth.register') }}">Sign Up</a></li>
+                        {% endif %}
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-3 col-6 mb-4 mb-md-0">
-                    <h5>Resources</h5>
-                    <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#">Blog</a></li>
-                        <li class="mb-2"><a href="#">Help Center</a></li>
-                        <li class="mb-2"><a href="#">Documentation</a></li>
-                    </ul>
-                </div>
-                <div class="col-lg-2 col-md-6 col-6 mb-4 mb-md-0">
                     <h5>Company</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="{{ url_for('main.about') }}">About</a></li>
-                        <li class="mb-2"><a href="#">Careers</a></li>
-                        <li class="mb-2"><a href="#">Contact</a></li>
+                        <li><a href="{{ url_for('main.about_page') }}">About Us</a></li>
+                        <li><a href="{{ url_for('main.careers_page') }}">Careers</a></li>
+                        <li><a href="{{ url_for('main.contact_page') }}">Contact</a></li>
                     </ul>
                 </div>
                 <div class="col-lg-2 col-md-6 col-6 mb-4 mb-md-0">
                     <h5>Legal</h5>
                     <ul class="list-unstyled">
-                        <li class="mb-2"><a href="#">Privacy</a></li>
-                        <li class="mb-2"><a href="#">Terms</a></li>
-                        <li class="mb-2"><a href="#">Security</a></li>
+                        <li><a href="{{ url_for('main.privacy_page') }}">Privacy Policy</a></li>
+                        <li><a href="{{ url_for('main.terms_page') }}">Terms of Service</a></li>
+                    </ul>
+                </div>
+                 <div class="col-lg-2 col-md-6 col-6">
+                    <h5>Connect</h5>
+                    <ul class="list-unstyled d-flex">
+                        <li><a href="#" class="me-3"><i class="fab fa-twitter"></i></a></li>
+                        <li><a href="#" class="me-3"><i class="fab fa-linkedin-in"></i></a></li>
+                        <li><a href="#"><i class="fab fa-github"></i></a></li>
                     </ul>
                 </div>
             </div>
-            <div class="row mt-5">
-                <div class="col-12 text-center">
-                    <p class="mb-0"> 2025 Inbox Genie. All rights reserved.</p>
-                </div>
+            <hr class="my-4">
+            <div class="text-center text-muted">
+                &copy; {{ current_year }} Inbox Genie. All rights reserved.
             </div>
         </div>
     </footer>
 
     <!-- JavaScript -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/js/all.min.js"></script>
     {% block extra_js %}{% endblock %}
 </body>
 </html>

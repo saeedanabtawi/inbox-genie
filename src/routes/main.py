@@ -1,7 +1,7 @@
 from flask import Blueprint, render_template, redirect, url_for, request, jsonify, flash
 from flask_login import login_required, current_user
 from sqlalchemy import func
-from datetime import datetime, timedelta
+from datetime import datetime, date, timedelta
 from ..models import EmailHistory, EmailTemplate, SMTPConfig, db
 from ..utils.email_generator import EmailGenerator
 from ..email_service import EmailService
@@ -147,11 +147,6 @@ def dashboard():
     
     return render_template('dashboard.html', analytics=analytics)
 
-@main_bp.route('/about')
-def about():
-    """Redirect the about page to landing page since content is merged"""
-    return redirect(url_for('main.landing'))
-
 @main_bp.route('/pricing')
 def pricing():
     """Render the pricing page - public access"""
@@ -208,3 +203,31 @@ def pricing():
     return render_template('pricing.html', user_tier=user_tier, 
                           email_usage=email_usage, bulk_campaigns=bulk_campaigns, 
                           plans=plans)
+
+@main_bp.route('/about')
+def about_page():
+    """Render the About Us page."""
+    return render_template('main/about.html', title="About Us")
+
+@main_bp.route('/careers')
+def careers_page():
+    """Render the Careers page."""
+    return render_template('main/careers.html', title="Careers")
+
+@main_bp.route('/contact')
+def contact_page():
+    """Render the Contact Us page."""
+    # Add logic here to handle form submission if implementing a functional contact form
+    return render_template('main/contact.html', title="Contact Us")
+
+@main_bp.route('/privacy')
+def privacy_page():
+    """Render the Privacy Policy page."""
+    current_date = date.today().strftime("%B %d, %Y")
+    return render_template('main/privacy.html', title="Privacy Policy", current_date=current_date)
+
+@main_bp.route('/terms')
+def terms_page():
+    """Render the Terms of Service page."""
+    current_date = date.today().strftime("%B %d, %Y")
+    return render_template('main/terms.html', title="Terms of Service", current_date=current_date)

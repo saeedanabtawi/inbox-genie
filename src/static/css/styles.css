@@ -245,6 +245,18 @@ p {
     100% { background-color: white; }
 }
 
+/* Footer Link Styling */
+footer a {
+    text-decoration: none; /* Remove underline */
+    color: var(--gray-text); /* Use a muted text color */
+    transition: color 0.2s ease-in-out; /* Smooth color transition on hover */
+}
+
+footer a:hover {
+    color: var(--primary-color); /* Change color on hover to primary */
+    text-decoration: underline; /* Optionally add underline on hover */
+}
+
 /* Responsive adjustments */
 @media (max-width: 767.98px) {
     .email-output {
